@@ -43,8 +43,8 @@ const Sidebar = () => {
               whileTap={{ scale: 0.95 }}
             >
               <a href="#" className="flex items-center py-2 px-4 rounded hover:bg-blue-700 transition-colors duration-200">
-                <item.icon className="w-5 h-5 mr-3" />
-                {item.label}
+                <item.icon className="w-5 h-5 mr-3 text-white" />
+                <span className="font-semibold text-white">{item.label}</span> {/* Added font-semibold class */}
               </a>
             </motion.li>
           ))}

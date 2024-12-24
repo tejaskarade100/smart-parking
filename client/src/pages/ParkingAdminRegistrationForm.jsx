@@ -26,8 +26,27 @@ const ParkingAdminRegistrationForm = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    if (type === 'checkbox') {
+      if (name === 'securityMeasures') {
+        const updatedMeasures = formData.securityMeasures || [];
+        if (checked) {
+          setFormData(prev => ({
+            ...prev,
+            securityMeasures: [...updatedMeasures, value]
+          }));
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            securityMeasures: updatedMeasures.filter(measure => measure !== value)
+          }));
+        }
+      } else {
+        setFormData(prev => ({ ...prev, [name]: checked }));
+      }
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleNext = () => {
@@ -45,19 +64,18 @@ const ParkingAdminRegistrationForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/api/admin/register', formData);
+      const response = await axios.post('http://localhost:5000/api/admin/register', formData);
       
       if (response.data.success) {
-        // Store the token and admin ID
         localStorage.setItem('adminToken', response.data.token);
         localStorage.setItem('adminId', response.data.adminId);
-        
-        // Show success popup
         setShowSuccessPopup(true);
+        setError("");
       } else {
         setError(response.data.message);
       }
     } catch (error) {
+      console.error('Registration error:', error);
       setError(error.response?.data?.message || 'Registration failed. Please try again.');
     }
   };
@@ -72,6 +90,12 @@ const ParkingAdminRegistrationForm = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+        
         <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 text-center">
@@ -114,100 +138,60 @@ const ParkingAdminRegistrationForm = () => {
                 </div>
               </div>
             </div>
+
+            <form onSubmit={handleSubmit}>
+              <CurrentStepComponent formData={formData} handleChange={handleChange} />
+              
+              <div className="mt-8 flex justify-between">
+                {currentStep > 1 && (
+                  <button
+                    type="button"
+                    onClick={handlePrevious}
+                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors"
+                  >
+                    Previous
+                  </button>
+                )}
+                
+                {currentStep < steps.length ? (
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors ml-auto"
+                  >
+                    Next
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors ml-auto"
+                  >
+                    Submit
+                  </button>
+                )}
+              </div>
+            </form>
           </div>
 
-          {error && (
-            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentStep}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
-              >
-                <CurrentStepComponent formData={formData} handleChange={handleChange} />
-              </motion.div>
-            </AnimatePresence>
-
-            <div className="mt-8 flex justify-between">
-              <button
-                type="button"
-                onClick={handlePrevious}
-                disabled={currentStep === 1}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
-                  ${currentStep === 1
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-              >
-                Previous
-              </button>
-              
-              {currentStep === steps.length ? (
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-                >
-                  Submit Registration
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-                >
-                  Next Step
-                </button>
-              )}
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {/* Success Popup */}
-      {showSuccessPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
-            <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
-                <svg
-                  className="h-6 w-6 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">
-                Registration Successful!
-              </h3>
-              <p className="mt-2 text-sm text-gray-500">
-                Your parking admin account has been created successfully.
-              </p>
-              <div className="mt-6">
+          {/* Success Popup */}
+          {showSuccessPopup && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+              <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4">
+                <h3 className="text-2xl font-bold text-green-600 mb-4">Registration Successful!</h3>
+                <p className="text-gray-600 mb-6">
+                  Your parking admin account has been created successfully. You can now access your dashboard.
+                </p>
                 <button
                   onClick={handleDashboardAccess}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                  className="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
                 >
                   Access Dashboard
                 </button>
               </div>
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

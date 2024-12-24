@@ -8,6 +8,7 @@ import Profile from './components/Profile';
 import BookingConfirmation from './components/BookingConfirmation';
 import ParkingCategoriesPage from './pages/ParkingCategoriesPage';
 import ParkingAdminRegistrationForm from './pages/ParkingAdminRegistrationForm';
+import AdminDashboard from './AdminControl/Dashboard';
 
 function App() {
   const { user } = useAuth();
@@ -30,6 +31,7 @@ function App() {
             />
             <Route path="/parking-categories" element={<ParkingCategoriesPage />} />
             <Route path="/admin-registration" element={<ParkingAdminRegistrationForm />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
           </Routes>
         </main>
 
