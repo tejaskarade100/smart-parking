@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LoginPage from '../pages/LoginPage';
 import Profile from './Profile';
-import { Smartphone, User, LogIn, Car } from 'lucide-react';
+import { Smartphone, User, LogIn, Car, Handshake } from 'lucide-react';
 
 function Header() {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -18,6 +18,10 @@ function Header() {
     } else {
       setShowLoginModal(true);
     }
+  };
+
+  const handlePartnerClick = () => {
+    navigate('/parking-categories');
   };
 
   const headerVariants = {
@@ -90,6 +94,18 @@ function Header() {
             >
               <Smartphone className="w-5 h-5" />
               <span>Get the App</span>
+            </motion.button>
+
+            <motion.button
+              onClick={handlePartnerClick}
+              className="inline-flex items-center space-x-2 px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors duration-200"
+              variants={buttonVariants}
+              initial="initial"
+              whileHover="hover"
+              whileTap="tap"
+            >
+              <Handshake className="w-5 h-5" />
+              <span>Partner with us</span>
             </motion.button>
             
             <AnimatePresence>

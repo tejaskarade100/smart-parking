@@ -6,6 +6,8 @@ import Header from './components/Header';
 import { useAuth } from './context/AuthContext';
 import Profile from './components/Profile';
 import BookingConfirmation from './components/BookingConfirmation';
+import ParkingCategoriesPage from './pages/ParkingCategoriesPage';
+import ParkingAdminRegistrationForm from './pages/ParkingAdminRegistrationForm';
 
 function App() {
   const { user } = useAuth();
@@ -26,6 +28,8 @@ function App() {
               path="/booking-confirmation/:bookingId" 
               element={<BookingConfirmation />} 
             />
+            <Route path="/parking-categories" element={<ParkingCategoriesPage />} />
+            <Route path="/admin-registration" element={<ParkingAdminRegistrationForm />} />
           </Routes>
         </main>
 
