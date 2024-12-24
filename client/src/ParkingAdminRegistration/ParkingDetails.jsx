@@ -19,6 +19,25 @@ const ParkingDetails = ({ formData, handleChange }) => {
       </div>
 
       <div className="space-y-2">
+        <label htmlFor="parkingType" className="block text-sm font-medium text-gray-700">
+          Parking Type
+        </label>
+        <select
+          id="parkingType"
+          name="parkingType"
+          value={formData.parkingType || ''}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          required
+        >
+          <option value="">Select Parking Type</option>
+          <option value="commercial">Commercial</option>
+          <option value="residential">Residential</option>
+          <option value="event">Event</option>
+        </select>
+      </div>
+
+      <div className="space-y-2">
         <label htmlFor="parkingAddress" className="block text-sm font-medium text-gray-700">
           Full Address
         </label>

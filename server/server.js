@@ -4,6 +4,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
+const adminRoutes = require('./routes/admin');
 
 dotenv.config();
 const app = express();
@@ -13,7 +14,10 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
@@ -26,6 +30,12 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/admin', adminRoutes);
+
+// Test route
+app.get('/test', (req, res) => {
+  res.json({ message: 'Server is running!' });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
