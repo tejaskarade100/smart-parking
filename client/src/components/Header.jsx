@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LoginPage from '../pages/LoginPage';
 import Profile from './Profile';
+import { Smartphone, User, LogIn, Car } from 'lucide-react';
 
 function Header() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const { user, isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleAccountClick = () => {
@@ -18,53 +20,117 @@ function Header() {
     }
   };
 
+  const headerVariants = {
+    hidden: { y: -50, opacity: 0 },
+    visible: { 
+      y: 0, 
+      opacity: 1,
+      transition: { 
+        type: 'spring', 
+        stiffness: 100, 
+        damping: 15,
+        duration: 0.5
+      }
+    }
+  };
+
+  const buttonVariants = {
+    initial: { scale: 1 },
+    hover: { 
+      scale: 1.05,
+      transition: { 
+        type: 'spring',
+        stiffness: 400,
+        damping: 10
+      }
+    },
+    tap: { scale: 0.95 }
+  };
+
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white">
+      <motion.header 
+        className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md"
+        initial="hidden"
+        animate="visible"
+        variants={headerVariants}
+        layout
+      >
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <a href="/" className="flex items-center space-x-2">
-            <span className="text-[#1E5EFF] font-bold text-2xl">PARK</span>
+          <motion.a 
+            href="/" 
+            className="flex items-center space-x-2"
+            variants={buttonVariants}
+            initial="initial"
+            whileHover="hover"
+            whileTap="tap"
+          >
+            <Car className="text-blue-600 w-8 h-8" />
+            <span className="text-blue-600 font-bold text-2xl">PARK</span>
             <span className="font-bold text-2xl">EASE</span>
-          </a>
+          </motion.a>
           
           <nav className="flex items-center space-x-8">
-            <a href="/about" className="text-gray-700 hover:text-gray-900">
+            <motion.a 
+              href="/about" 
+              className="text-gray-700 hover:text-gray-900 transition-colors duration-200"
+              variants={buttonVariants}
+              initial="initial"
+              whileHover="hover"
+              whileTap="tap"
+            >
               About
-            </a>
-            <button className="inline-flex items-center space-x-2 px-4 py-2 border rounded-md hover:bg-gray-50">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-smartphone"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+            </motion.a>
+            <motion.button 
+              className="inline-flex items-center space-x-2 px-4 py-2 border rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors duration-200"
+              variants={buttonVariants}
+              initial="initial"
+              whileHover="hover"
+              whileTap="tap"
+            >
+              <Smartphone className="w-5 h-5" />
               <span>Get the App</span>
-            </button>
-            {isAuthenticated ? (
-              <div className="relative">
-                <button 
+            </motion.button>
+            
+            <AnimatePresence>
+              {isAuthenticated ? (
+                <motion.button 
                   onClick={handleAccountClick}
-                  className="inline-flex items-center space-x-2 px-4 py-2 hover:bg-gray-50 rounded-md"
+                  className="inline-flex items-center space-x-2 px-4 py-2 hover:bg-gray-50 rounded-md transition-colors duration-200"
+                  variants={buttonVariants}
+                  initial="initial"
+                  whileHover="hover"
+                  whileTap="tap"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-user"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                  <User className="w-5 h-5 text-blue-600" />
                   <span>{user?.name || 'My Profile'}</span>
-                </button>
-              </div>
-            ) : (
-              <button 
-                onClick={handleAccountClick}
-                className="inline-flex items-center space-x-2 px-4 py-2 hover:bg-gray-50 rounded-md"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-user"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
-                <span>Login</span>
-              </button>
-            )}
+                </motion.button>
+              ) : (
+                <motion.button 
+                  onClick={handleAccountClick}
+                  className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                  variants={buttonVariants}
+                  initial="initial"
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  <LogIn className="w-5 h-5" />
+                  <span>Login</span>
+                </motion.button>
+              )}
+            </AnimatePresence>
           </nav>
         </div>
-      </header>
+      </motion.header>
 
-      {showLoginModal && (
-        <LoginPage onClose={() => setShowLoginModal(false)} />
-      )}
-
-      {showProfileModal && (
-        <Profile onClose={() => setShowProfileModal(false)} />
-      )}
+      <AnimatePresence>
+        {showLoginModal && (
+          <LoginPage onClose={() => setShowLoginModal(false)} />
+        )}
+        {showProfileModal && (
+          <Profile onClose={() => setShowProfileModal(false)} />
+        )}
+      </AnimatePresence>
     </>
   );
 }

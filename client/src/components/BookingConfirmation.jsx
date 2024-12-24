@@ -1,11 +1,58 @@
-import React, { useRef } from 'react';
-import QRCode from 'qrcode.react';
+import React, { useRef, useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import { motion } from 'framer-motion';
 import { FaDownload, FaShare, FaWhatsapp } from 'react-icons/fa';
+import api from '../api/axios';
 
-const BookingConfirmation = ({ booking, onClose }) => {
+const BookingConfirmation = () => {
+  const { bookingId } = useParams();
+  const navigate = useNavigate();
   const receiptRef = useRef();
+  const [booking, setBooking] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchBooking = async () => {
+      try {
+        const response = await api.get(`/user/bookings/${bookingId}`);
+        setBooking(response.data);
+      } catch (err) {
+        console.error('Error fetching booking:', err);
+        setError('Failed to load booking details');
+      }
+    };
+
+    if (bookingId) {
+      fetchBooking();
+    }
+  }, [bookingId]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
+          <p className="text-gray-600">{error}</p>
+          <button
+            onClick={() => navigate('/')}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Return Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!booking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   const downloadReceipt = async () => {
     const element = receiptRef.current;
@@ -41,12 +88,7 @@ const BookingConfirmation = ({ booking, onClose }) => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
-    >
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 pt-16">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
         <div className="p-6" ref={receiptRef}>
           {/* Header */}
@@ -57,7 +99,7 @@ const BookingConfirmation = ({ booking, onClose }) => {
 
           {/* QR Code */}
           <div className="flex justify-center mb-6">
-            <QRCode 
+            <QRCodeSVG 
               value={`PARKING:${booking._id}`}
               size={128}
               level="H"
@@ -85,7 +127,13 @@ const BookingConfirmation = ({ booking, onClose }) => {
             <div>
               <h3 className="font-semibold text-gray-800">Date & Time</h3>
               <p className="text-gray-600">
-                {new Date(booking.date).toLocaleDateString()} • {booking.duration} hour(s)
+                From: {new Date(booking.startDateTime).toLocaleString()}
+              </p>
+              <p className="text-gray-600">
+                To: {new Date(booking.endDateTime).toLocaleString()}
+              </p>
+              <p className="text-sm text-gray-500">
+                Duration: {booking.duration} hour(s)
               </p>
             </div>
 
@@ -115,14 +163,14 @@ const BookingConfirmation = ({ booking, onClose }) => {
         {/* Close Button */}
         <div className="border-t p-4">
           <button
-            onClick={onClose}
+            onClick={() => navigate('/')}
             className="w-full py-2 text-gray-600 hover:text-gray-800 transition-colors"
           >
             Close
           </button>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

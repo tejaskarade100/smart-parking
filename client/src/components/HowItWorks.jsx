@@ -1,46 +1,109 @@
+import React from "react";
+import { motion } from "framer-motion";
+import { Search, CreditCard, Car } from "lucide-react";
+
 function HowItWorks() {
   const steps = [
     {
-      title: 'Look',
-      description: 'Search and compare prices at thousands of parking facilities across North America.',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#1E5EFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-map"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/></svg>
-      )
+      title: "Look",
+      description:
+        "Search and compare prices at thousands of parking facilities across North America.",
+      icon: Search,
+      color: "from-blue-400 to-blue-600",
+      iconColor: "#60A5FA",
     },
     {
-      title: 'Book',
-      description: 'Pay securely and receive a prepaid parking pass instantly via email or in the app.',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#1E5EFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-smartphone"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
-      )
+      title: "Book",
+      description:
+        "Pay securely and receive a prepaid parking pass instantly via email or in the app.",
+      icon: CreditCard,
+      color: "from-green-400 to-green-600",
+      iconColor: "#4ADE80",
     },
     {
-      title: 'Park',
-      description: 'When you arrive, follow the instructions included in your pass, park, and go!',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#1E5EFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-car"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L17 10h-.3c-.5 0-1 .2-1.4.6L14 12H8v-2c0-.6-.4-1-1-1H5.5c-.3 0-.5.1-.7.3L2.1 12c-.1.2-.2.4-.2.6V15c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
-      )
-    }
-  ]
+      title: "Park",
+      description:
+        "When you arrive, follow the instructions included in your pass, park, and go!",
+      icon: Car,
+      color: "from-purple-400 to-purple-600",
+      iconColor: "#C084FC",
+    },
+  ];
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+      },
+    },
+  };
+
+  const cardVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
+      },
+    },
+    hover: {
+      scale: 1.05,
+      boxShadow: "0 10px 20px rgba(0,0,0,0.1)",
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 20,
+      },
+    },
+  };
 
   return (
-    <section className="py-20 'bg-white">
+    <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-16">How SpotHero Works</h2>
-        <div className="grid md:grid-cols-3 gap-12">
+      <h2 className="text-4xl font-bold text-center mb-16 text-gray-800">
+  How <span className="text-blue-600 font-bold text-4xl">PARK </span>
+  <span className="font-bold text-4xl">EASE</span> Works
+</h2>
+
+        <motion.div
+          className="grid md:grid-cols-3 gap-8"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {steps.map((step, index) => (
-            <div key={index} className="text-center">
-              <div className="flex justify-center mb-6">
-                {step.icon}
+            <motion.div
+              key={index}
+              className="bg-white rounded-xl overflow-hidden shadow-md"
+              variants={cardVariants}
+              whileHover="hover"
+            >
+              <div className={`p-8 bg-gradient-to-r ${step.color}`}>
+                <div className="flex justify-center mb-6">
+                  <div className="bg-white rounded-full p-4">
+                    <step.icon size={48} color={step.iconColor} />
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold mb-4">{step.title}</h3>
-              <p className="text-gray-600 leading-relaxed">{step.description}</p>
-            </div>
+              <div className="p-6 text-gray-800">
+                <h3 className="text-2xl font-semibold mb-4 text-center">
+                  {step.title}
+                </h3>
+                <p className="text-center leading-relaxed">
+                  {step.description}
+                </p>
+              </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
-  )
+  );
 }
 
-export default HowItWorks
+export default HowItWorks;

@@ -16,23 +16,32 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const ParkingMap = ({ locations, selectedLocation, onLocationSelect, onBookNow }) => {
+const ParkingMap = ({ locations, selectedLocation, onLocationSelect }) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef({});
-  const isFirstLoadRef = useRef(true);
+
+  useEffect(() => {
+    // Cleanup function to handle map instance cleanup
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!mapInstanceRef.current && mapRef.current) {
+      // Initialize map
       mapInstanceRef.current = L.map(mapRef.current, {
         center: [18.5204, 73.8567], // Default to Pune
-        zoom: 14, // More zoomed in city level
+        zoom: 14,
         scrollWheelZoom: true,
-        zoomControl: true,
-        dragging: true,
-        doubleClickZoom: true
+        zoomControl: true
       });
 
+      // Add tile layer
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
         minZoom: 13,
@@ -68,12 +77,6 @@ const ParkingMap = ({ locations, selectedLocation, onLocationSelect, onBookNow }
                 </div>
               `).join('')}
             </div>
-            <button 
-              class="w-full mt-3 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
-              onclick="window.bookNow('${location.name}')"
-            >
-              Book Now
-            </button>
           </div>
         </div>
       `;
@@ -81,7 +84,6 @@ const ParkingMap = ({ locations, selectedLocation, onLocationSelect, onBookNow }
       const popup = L.popup({
         closeButton: true,
         closeOnClick: false,
-        autoClose: true, // Close when clicking elsewhere
         className: 'custom-popup',
         maxWidth: 300,
         minWidth: 250
@@ -89,75 +91,36 @@ const ParkingMap = ({ locations, selectedLocation, onLocationSelect, onBookNow }
 
       marker.bindPopup(popup);
       
-      // Show popup on hover
-      marker.on('mouseover', () => {
-        marker.openPopup();
-      });
-
-      // Hide popup when mouse leaves
-      marker.on('mouseout', () => {
-        marker.closePopup();
-      });
-
-      // Handle click
+      // Add click handler
       marker.on('click', () => {
         onLocationSelect(location);
-        marker.openPopup();
       });
 
+      // Store marker reference
       markersRef.current[location.name] = marker;
     });
 
-    // Only zoom to fit markers on first load with locations
-    if (locations.length > 0 && isFirstLoadRef.current) {
-      const group = new L.featureGroup(Object.values(markersRef.current));
-      const bounds = group.getBounds();
-      
-      mapInstanceRef.current.fitBounds(bounds, {
-        padding: [100, 100], // Add padding around the bounds
-        maxZoom: 13, // Limit max zoom to keep context
-        minZoom: 11, // Don't zoom out too far
-        animate: true,
-        duration: 1
-      });
-      
-      isFirstLoadRef.current = false;
+    // Update map view if locations exist
+    if (locations.length > 0) {
+      const bounds = L.latLngBounds(locations.map(loc => [loc.lat, loc.lng]));
+      mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
     }
 
-    // Just open popup for selected location without zooming
+    // Handle selected location
     if (selectedLocation) {
       const marker = markersRef.current[selectedLocation.name];
       if (marker) {
         marker.openPopup();
+        mapInstanceRef.current.setView([selectedLocation.lat, selectedLocation.lng], 15);
       }
     }
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
   }, [locations, selectedLocation, onLocationSelect]);
 
-  // Add global function for booking
-  useEffect(() => {
-    const handleMarkerClick = (locationName) => {
-      const location = locations.find(loc => loc.name === locationName);
-      if (location) {
-        onLocationSelect(location);
-        onBookNow(location);
-      }
-    };
-
-    window.bookNow = handleMarkerClick;
-
-    return () => {
-      delete window.bookNow;
-    };
-  }, [locations, onLocationSelect, onBookNow]);
-
-  return <div ref={mapRef} className="w-full h-full" />;
+  return (
+    <div className="relative w-full h-full">
+      <div ref={mapRef} className="absolute inset-0" />
+    </div>
+  );
 };
 
 export default ParkingMap;
