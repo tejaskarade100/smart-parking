@@ -17,44 +17,21 @@ const generateParkingSpots = async (location = 'Pune') => {
       const { lat, lon } = data[0];
       const baseLocation = { lat: parseFloat(lat), lng: parseFloat(lon) };
       
-      // Generate 4 random parking spots around the location
-      return [
-        {
-          name: `${location} Central Parking`,
+      // Generate 5 random parking spots around the location
+      const spots = [];
+      const baseRates = [40, 50, 60, 70, 80]; // Different rates for spots
+      
+      for (let i = 0; i < 5; i++) {
+        spots.push({
+          name: `${location} Parking Spot ${i + 1}`,
           lat: baseLocation.lat + (Math.random() - 0.5) * 0.05,
           lng: baseLocation.lng + (Math.random() - 0.5) * 0.05,
-          price: `₹${Math.floor(Math.random() * 30 + 20)}/hr`,
+          spotRate: baseRates[i], // Assign different rates
+          price: `₹${baseRates[i]}/hr`,
           facilities: ["Covered Parking", "24/7 Security"]
-        },
-        {
-          name: `${location} Mall Parking`,
-          lat: baseLocation.lat + (Math.random() - 0.5) * 0.05,
-          lng: baseLocation.lng + (Math.random() - 0.5) * 0.05,
-          price: `₹${Math.floor(Math.random() * 30 + 20)}/hr`,
-          facilities: ["Valet Parking", "EV Charging"]
-        },
-        {
-          name: `${location} Station Parking`,
-          lat: baseLocation.lat + (Math.random() - 0.5) * 0.05,
-          lng: baseLocation.lng + (Math.random() - 0.5) * 0.05,
-          price: `₹${Math.floor(Math.random() * 30 + 20)}/hr`,
-          facilities: ["Open Parking"]
-        },
-        {
-          name: `${location} School Parking`,
-          lat: baseLocation.lat + (Math.random() - 0.5) * 0.05,
-          lng: baseLocation.lng + (Math.random() - 0.5) * 0.05,
-          price: `₹${Math.floor(Math.random() * 30 + 20)}/hr`,
-          facilities: ["Open and secure Parking"]
-        },
-        {
-          name: `${location} Market Parking`,
-          lat: baseLocation.lat + (Math.random() - 0.5) * 0.05,
-          lng: baseLocation.lng + (Math.random() - 0.5) * 0.05,
-          price: `₹${Math.floor(Math.random() * 30 + 20)}/hr`,
-          facilities: ["CCTV Surveillance", "Covered Parking"]
-        }
-      ];
+        });
+      }
+      return spots;
     }
     return [];
   } catch (error) {
@@ -78,6 +55,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (state?.startDateTime && state?.endDateTime) {
+      console.log('Setting search date time:', state);
       setSearchDateTime({
         startDateTime: state.startDateTime,
         endDateTime: state.endDateTime
@@ -99,16 +77,26 @@ const Dashboard = () => {
   }, [state?.location, state?.startDateTime, state?.endDateTime]);
 
   const handleLocationSelect = (location) => {
+    console.log('Selected location:', location);
     setSelectedLocation(location);
   };
 
   const handleBookNow = (location) => {
-    setBookingLocation(location);
+    console.log('Booking location with data:', { location, searchDateTime });
+    setBookingLocation({
+      ...location,
+      spotRate: location.spotRate || location.rate || 40 // Ensure rate is passed
+    });
+    setBookingDateTime(searchDateTime);
     setShowBookNow(true);
   };
 
   const handleSearchSubmit = (dateTime) => {
-    setBookingDateTime(dateTime);
+    console.log('Search date time:', dateTime);
+    setSearchDateTime({
+      startDateTime: dateTime.startDateTime,
+      endDateTime: dateTime.endDateTime
+    });
   };
 
   if (isLoading) {
@@ -158,15 +146,12 @@ const Dashboard = () => {
 
       {/* BookNow Modal */}
       {showBookNow && (
-          <BookNow 
-            onClose={() => setShowBookNow(false)}
-            location={bookingLocation}
-            bookingDateTime={{
-              startDateTime: searchDateTime.startDateTime,
-              endDateTime: searchDateTime.endDateTime
-            }}
-          />
-        )}
+        <BookNow 
+          onClose={() => setShowBookNow(false)}
+          location={bookingLocation}
+          bookingDateTime={searchDateTime}
+        />
+      )}
     </div>
   );
 };

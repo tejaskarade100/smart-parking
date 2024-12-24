@@ -17,14 +17,15 @@ function SearchForm() {
 
   const handleSearch = () => {
     if (location.trim()) {
-      navigate('/dashboard', { 
-        state: { 
-          location: location.trim(),
-          searchType,
-          startDateTime: format(startDate, "MMM dd, yyyy HH:mm"),
-          endDateTime: format(endDate, "MMM dd, yyyy HH:mm")
-        } 
-      });
+      // Convert dates to ISO strings for consistent format
+      const searchData = {
+        location: location.trim(),
+        searchType,
+        startDateTime: startDate.toISOString(),
+        endDateTime: endDate.toISOString()
+      };
+      console.log('Search data:', searchData);
+      navigate('/dashboard', { state: searchData });
     }
   };
 

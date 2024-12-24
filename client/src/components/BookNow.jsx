@@ -15,13 +15,47 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
   const [error, setError] = useState('');
   const [bookingConfirmation, setBookingConfirmation] = useState(null);
 
-  const subtotal = 6.00;
-  const serviceFee = 0.75;
-  const total = subtotal + serviceFee;
+  // Constants for pricing
+  const SERVICE_FEE_PERCENTAGE = 5; // 5%
 
   useEffect(() => {
+    console.log('BookNow received props:', { location, bookingDateTime });
     fetchVehicles();
-  }, []);
+  }, [location]);
+
+  // Calculate duration in hours between start and end datetime
+  const calculateDuration = () => {
+    if (!bookingDateTime?.startDateTime || !bookingDateTime?.endDateTime) {
+      console.log('Missing datetime values:', bookingDateTime);
+      return 0;
+    }
+    const start = new Date(bookingDateTime.startDateTime);
+    const end = new Date(bookingDateTime.endDateTime);
+    console.log('Calculating duration for:', { start, end });
+    const durationInMs = end - start;
+    const durationInHours = durationInMs / (1000 * 60 * 60);
+    return Math.ceil(durationInHours);
+  };
+
+  // Calculate costs based on location's rate
+  const calculateCosts = () => {
+    const duration = calculateDuration();
+    const baseRate = location?.spotRate || 0;
+    console.log('Calculating costs with rate:', baseRate);
+    
+    const subtotal = baseRate * duration;
+    const serviceFee = (subtotal * SERVICE_FEE_PERCENTAGE) / 100;
+    const total = subtotal + serviceFee;
+
+    return {
+      baseRate,
+      subtotal,
+      serviceFee,
+      total
+    };
+  };
+
+  const { baseRate, subtotal, serviceFee, total } = calculateCosts();
 
   const fetchVehicles = async () => {
     try {
@@ -36,57 +70,53 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate vehicle selection
     if (!selectedVehicle) {
       setError('Please select a vehicle');
       return;
     }
 
-    // Validate location
-    if (!location?.name) {
-      setError('Invalid location data');
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
-
     try {
+      setIsLoading(true);
+      setError(null);
+
+      const { total, baseRate } = calculateCosts();
+      const duration = calculateDuration();
+
       // Prepare booking data
       const bookingData = {
         vehicleId: selectedVehicle,
         location: {
           name: location.name,
           address: location.address || '',
-          lat: location.lat || null,
-          lng: location.lng || null
+          coordinates: {
+            lat: location.lat || null,
+            lng: location.lng || null
+          },
+          spotRate: location.spotRate
         },
-        phone: phone.trim(),
+        phone: phone.trim() || null,
         total: parseFloat(total.toFixed(2)),
-        duration: 1,
-        startDateTime: bookingDateTime.startDateTime,
-        endDateTime: bookingDateTime.endDateTime
+        duration: duration,
+        startDateTime: new Date(bookingDateTime.startDateTime).toISOString(),
+        endDateTime: new Date(bookingDateTime.endDateTime).toISOString(),
+        hourlyRate: location.spotRate,
+        rate: location.spotRate // Add rate field for compatibility
       };
 
-      console.log('Sending booking data:', bookingData);
+      console.log('Submitting booking with data:', bookingData);
 
-      // Make API request
       const response = await api.post('/user/bookings', bookingData);
       console.log('Booking response:', response.data);
 
-      // Navigate to booking confirmation page
       if (response.data && response.data._id) {
-        onClose(); // Close the modal
+        setBookingConfirmation(response.data);
         navigate(`/booking-confirmation/${response.data._id}`);
       } else {
-        throw new Error('Invalid booking response');
+        throw new Error('Invalid response from server');
       }
-    } catch (error) {
-      console.error('Booking error:', error.response || error);
-      setError(
-        error.response?.data?.message || 
-        'Failed to create booking. Please try again.'
-      );
+    } catch (err) {
+      console.error('Error creating booking:', err);
+      setError(err.response?.data?.message || 'Failed to create booking. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -205,16 +235,24 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
 
             <div className="space-y-4">
               <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
-                <span className="font-medium">${subtotal.toFixed(2)}</span>
+                <span className="text-gray-600">Rate per hour</span>
+                <span className="font-medium">₹{baseRate.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Service Fee</span>
-                <span className="font-medium">${serviceFee.toFixed(2)}</span>
+                <span className="text-gray-600">Duration</span>
+                <span className="font-medium">{calculateDuration()} hour(s)</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Subtotal</span>
+                <span className="font-medium">₹{subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Service Fee ({SERVICE_FEE_PERCENTAGE}%)</span>
+                <span className="font-medium">₹{serviceFee.toFixed(2)}</span>
               </div>
               <div className="flex justify-between pt-4 border-t">
                 <span className="font-semibold">Total</span>
-                <span className="font-semibold">${total.toFixed(2)}</span>
+                <span className="font-semibold">₹{total.toFixed(2)}</span>
               </div>
             </div>
 
@@ -222,8 +260,9 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
               <h4 className="font-medium mb-2">Booking Details</h4>
               <div className="text-sm text-gray-600 space-y-1">
                 <p>Location: {location?.name || 'Selected Parking Space'}</p>
-                <p>Duration: 1 hour</p>
                 <p>Date: {new Date().toLocaleDateString()}</p>
+                <p className="text-sm text-gray-600">From: {bookingDateTime.startDateTime}</p>
+                <p className="text-sm text-gray-600">To: {bookingDateTime.endDateTime}</p>
               </div>
             </div>
 
