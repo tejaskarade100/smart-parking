@@ -1,7 +1,4 @@
-Here’s a polished and engaging README for your repository:
-
-```markdown
-# Smart Parking Website
+# Smart Parking 
 
 A modern and user-friendly smart parking solution designed to simplify the process of finding and booking parking spaces. With a seamless interface, real-time availability, and convenient booking options, our platform ensures a hassle-free experience for drivers while enabling parking space owners to efficiently manage their listings.
 
@@ -114,4 +111,3 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 We welcome contributions and suggestions! Feel free to open issues or create pull requests to improve the project.
 ```
 
-This README is concise, professional, and includes everything needed for clarity and usability. Let me know if you'd like any additional changes!
