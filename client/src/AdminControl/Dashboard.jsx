@@ -26,7 +26,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className=" flex h-screen bg-gray-100 pt-20">
       <Sidebar />
       <motion.div 
         className="flex-1 overflow-hidden"
