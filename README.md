@@ -96,7 +96,7 @@ Ensure you have the following installed:
 ## 👥 Contributors
 
 - [Tejas Karade](https://github.com/tejaskarade100)
-- [Jayesh L](https://github.com/JayeshL07)
+- [Jayesh Lambdade](https://github.com/JayeshL07)
 
 ---
 
