@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { LogOut, Mail, User, X, Car, Clock, Plus, Trash2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { LogOut, Mail, User, X, Car, Clock, Plus, Trash2, ChevronRight, Calendar, MapPin, CreditCard } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 
 const Profile = ({ onClose }) => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
   const [vehicles, setVehicles] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [showAddVehicle, setShowAddVehicle] = useState(false);
+  const [showBookings, setShowBookings] = useState(false);
   const [newVehicle, setNewVehicle] = useState({
     makeModel: '',
     licensePlate: '',
@@ -19,9 +22,16 @@ const Profile = ({ onClose }) => {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // Check if user is admin and redirect to admin dashboard
+    if (user?.role === 'admin') {
+      onClose(); // Close the profile modal
+      navigate('/admin/dashboard'); // Redirect to admin dashboard
+      return;
+    }
+
     fetchVehicles();
     fetchBookings();
-  }, []);
+  }, [user, navigate, onClose]);
 
   const fetchVehicles = async () => {
     try {
@@ -114,227 +124,207 @@ const Profile = ({ onClose }) => {
     try {
       await logout();
       onClose();
+      navigate('/', { replace: true }); // Use replace to prevent going back to the login page
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error('Error during logout:', error);
     }
   };
 
   const renderProfileTab = () => (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-        <div className="bg-blue-100 p-3 rounded-full">
-          <User className="text-blue-600" size={24} />
+    <div className="space-y-8">
+      {/* Profile Overview */}
+      <div className="bg-white rounded-2xl shadow-lg p-6 space-y-6">
+        <div className="flex items-center space-x-4">
+          <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+            <span className="text-3xl font-bold text-white">
+              {user?.email?.[0]?.toUpperCase() || 'U'}
+            </span>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">{user?.name || 'User'}</h2>
+            <p className="text-gray-500">{user?.email}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-sm text-gray-500">Name</p>
-          <p className="font-medium">{user?.name}</p>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-blue-50 rounded-xl p-4">
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <Car className="text-blue-600" size={24} />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Vehicles</p>
+                <p className="text-xl font-semibold text-gray-800">{vehicles.length}</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-green-50 rounded-xl p-4">
+            <div className="flex items-center space-x-3">
+              <div className="bg-green-100 p-2 rounded-lg">
+                <Clock className="text-green-600" size={24} />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Bookings</p>
+                <p className="text-xl font-semibold text-gray-800">{bookings.length}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-        <div className="bg-blue-100 p-3 rounded-full">
-          <Mail className="text-blue-600" size={24} />
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">Email</p>
-          <p className="font-medium">{user?.email}</p>
+      {/* Quick Actions */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-gray-700">Quick Actions</h3>
+        <div className="grid gap-4">
+          <button
+            onClick={() => setActiveTab('vehicles')}
+            className="flex items-center justify-between w-full p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center space-x-4">
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Car className="text-blue-600" size={24} />
+              </div>
+              <div className="text-left">
+                <p className="font-medium text-gray-800">Manage Vehicles</p>
+                <p className="text-sm text-gray-500">{vehicles.length} vehicles registered</p>
+              </div>
+            </div>
+            <ChevronRight className="text-gray-400" size={20} />
+          </button>
+
+          <button
+            onClick={() => setShowBookings(!showBookings)}
+            className="flex items-center justify-between w-full p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center space-x-4">
+              <div className="bg-green-100 p-3 rounded-lg">
+                <Calendar className="text-green-600" size={24} />
+              </div>
+              <div className="text-left">
+                <p className="font-medium text-gray-800">View Bookings</p>
+                <p className="text-sm text-gray-500">{bookings.length} total bookings</p>
+              </div>
+            </div>
+            <ChevronRight className="text-gray-400" size={20} />
+          </button>
         </div>
       </div>
-
-      <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-        <div className="bg-blue-100 p-3 rounded-full">
-          <Car className="text-blue-600" size={24} />
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">Vehicles</p>
-          <p className="font-medium">{vehicles.length}</p>
-        </div>
-      </div>
-
-      <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-        <div className="bg-blue-100 p-3 rounded-full">
-          <Clock className="text-blue-600" size={24} />
-        </div>
-        <div>
-          <p className="text-sm text-gray-500">Bookings</p>
-          <p className="font-medium">{bookings.length}</p>
-        </div>
-      </div>
-
-      <button
-        onClick={() => setActiveTab('vehicles')}
-        className="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-      >
-        <Car size={20} />
-        <span>Manage Vehicles</span>
-      </button>
-
-      <button
-        onClick={() => setActiveTab('bookings')}
-        className="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-      >
-        <Clock size={20} />
-        <span>View Bookings</span>
-      </button>
     </div>
   );
 
   const renderVehiclesTab = () => (
-    <div className="space-y-4">
-      {vehicles.map((vehicle) => (
-        <div key={vehicle._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center space-x-4">
-            <div className="bg-blue-100 p-3 rounded-full">
-              <Car className="text-blue-600" size={24} />
-            </div>
-            <div>
-              <p className="font-medium">{vehicle.makeModel}</p>
-              <p className="text-sm text-gray-500">{vehicle.licensePlate} • {vehicle.state}</p>
-            </div>
-          </div>
-          <button
-            onClick={() => handleDeleteVehicle(vehicle._id)}
-            className="text-red-500 hover:text-red-600"
-          >
-            <Trash2 size={20} />
-          </button>
-        </div>
-      ))}
-
-      {showAddVehicle ? (
-        <form onSubmit={handleAddVehicle} className="space-y-4 p-4 bg-gray-50 rounded-lg">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Make & Model</label>
-            <input
-              type="text"
-              value={newVehicle.makeModel}
-              onChange={(e) => setNewVehicle({ ...newVehicle, makeModel: e.target.value })}
-              className="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-              placeholder="e.g., Toyota Camry"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">License Plate</label>
-            <input
-              type="text"
-              value={newVehicle.licensePlate}
-              onChange={(e) => setNewVehicle({ ...newVehicle, licensePlate: e.target.value })}
-              className="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-              placeholder="e.g., ABC123"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-            <input
-              type="text"
-              value={newVehicle.state}
-              onChange={(e) => setNewVehicle({ ...newVehicle, state: e.target.value })}
-              className="w-full px-3 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-              placeholder="e.g., CA"
-              maxLength="2"
-              required
-            />
-          </div>
-          <div className="flex space-x-2">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Adding...' : 'Add Vehicle'}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowAddVehicle(false);
-                setNewVehicle({ makeModel: '', licensePlate: '', state: '' });
-                setError('');
-              }}
-              className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-md hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-          </div>
-          {error && (
-            <div className="p-3 bg-red-100 text-red-700 rounded-md text-sm">
-              {error}
-            </div>
-          )}
-        </form>
-      ) : (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-semibold text-gray-800">Your Vehicles</h3>
         <button
-          onClick={() => setShowAddVehicle(true)}
-          className="w-full flex items-center justify-center space-x-2 p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400"
+          onClick={() => setActiveTab('profile')}
+          className="text-blue-600 hover:text-blue-700"
         >
-          <Plus size={20} />
-          <span>Add Vehicle</span>
+          Back to Profile
         </button>
-      )}
-    </div>
-  );
+      </div>
 
-  const renderBookingsTab = () => (
-    <div className="space-y-4">
-      {isLoading ? (
-        <div className="text-center py-4">Loading bookings...</div>
-      ) : error ? (
-        <div className="text-red-500 text-center py-4">{error}</div>
-      ) : bookings.length === 0 ? (
-        <div className="text-gray-500 text-center py-4">No bookings yet</div>
-      ) : (
-        <div className="space-y-4">
-          {bookings.map((booking) => (
-            <div
-              key={booking._id}
-              className="bg-white rounded-lg shadow-md p-4 border border-gray-200"
-            >
-              <div className="flex justify-between items-start">
-                <div className="space-y-2">
-                  <div>
-                    <h4 className="font-semibold text-lg">
-                      {booking.location.name}
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      Ref: {booking.bookingReference}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">
-                      {new Date(booking.date).toLocaleDateString()} • {booking.duration} hour(s)
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {booking.vehicle.makeModel} ({booking.vehicle.licensePlate})
-                    </p>
-                    {booking.phone && (
-                      <p className="text-sm text-gray-600">
-                        Contact: {booking.phone}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-lg font-medium text-green-600">
-                      ₹{booking.total.toFixed(2)}
-                    </p>
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm ${
-                        booking.status === 'Active'
-                          ? 'bg-green-100 text-green-800'
-                          : booking.status === 'Completed'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {booking.status}
-                    </span>
-                  </div>
+      <div className="grid gap-4">
+        {vehicles.map((vehicle) => (
+          <div 
+            key={vehicle._id} 
+            className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <Car className="text-blue-600" size={24} />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-800">{vehicle.makeModel}</p>
+                  <p className="text-sm text-gray-500">{vehicle.licensePlate} • {vehicle.state}</p>
                 </div>
               </div>
+              <button
+                onClick={() => handleDeleteVehicle(vehicle._id)}
+                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <Trash2 size={20} />
+              </button>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+
+        {showAddVehicle ? (
+          <form onSubmit={handleAddVehicle} className="bg-white p-6 rounded-xl shadow-lg space-y-4">
+            <h4 className="text-lg font-semibold text-gray-800 mb-4">Add New Vehicle</h4>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Make & Model</label>
+                <input
+                  type="text"
+                  value={newVehicle.makeModel}
+                  onChange={(e) => setNewVehicle({ ...newVehicle, makeModel: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., Toyota Camry"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">License Plate</label>
+                <input
+                  type="text"
+                  value={newVehicle.licensePlate}
+                  onChange={(e) => setNewVehicle({ ...newVehicle, licensePlate: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., ABC123"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                <input
+                  type="text"
+                  value={newVehicle.state}
+                  onChange={(e) => setNewVehicle({ ...newVehicle, state: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., CA"
+                  maxLength="2"
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex space-x-3 pt-4">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isLoading ? 'Adding...' : 'Add Vehicle'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddVehicle(false);
+                  setNewVehicle({ makeModel: '', licensePlate: '', state: '' });
+                  setError('');
+                }}
+                className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+            {error && (
+              <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm mt-4">
+                {error}
+              </div>
+            )}
+          </form>
+        ) : (
+          <button
+            onClick={() => setShowAddVehicle(true)}
+            className="flex items-center justify-center space-x-2 p-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors"
+          >
+            <Plus size={20} />
+            <span>Add New Vehicle</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 
@@ -343,7 +333,7 @@ const Profile = ({ onClose }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto"
       onClick={onClose}
     >
       <motion.div
@@ -351,125 +341,166 @@ const Profile = ({ onClose }) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         onClick={e => e.stopPropagation()}
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col"
+        className="bg-gray-50 rounded-2xl shadow-2xl w-full max-w-3xl min-h-[80vh] max-h-[90vh] flex flex-col relative"
       >
-        {/* Profile Header - Fixed */}
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 flex-shrink-0">
+        {/* Header */}
+        <div className="flex justify-between items-center p-6 border-b">
+          <h2 className="text-2xl font-bold text-gray-800">Profile</h2>
           <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
-              <span className="text-2xl font-bold text-blue-500">
-                {user?.email?.[0]?.toUpperCase() || 'U'}
-              </span>
-            </div>
-            <div className="text-white">
-              <h2 className="text-xl font-bold">{user?.email || 'User'}</h2>
-              <p className="text-blue-100">Member since {new Date().getFullYear()}</p>
-            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+            >
+              <LogOut size={20} />
+              <span>Logout</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <X size={20} />
+            </button>
           </div>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Recent Bookings */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Recent Bookings</h3>
-            {isLoading ? (
-              <div className="text-center py-4">Loading bookings...</div>
-            ) : error ? (
-              <div className="text-red-500 text-center py-4">{error}</div>
-            ) : bookings.length === 0 ? (
-              <div className="text-gray-500 text-center py-4">No bookings yet</div>
-            ) : (
-              <div className="space-y-4">
-                {bookings.map((booking) => (
-                  <div
-                    key={booking._id}
-                    className="bg-white rounded-lg shadow-md p-4 border border-gray-200"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <div>
-                          <h4 className="font-semibold text-lg">
-                            {booking.location.name}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            Ref: {booking.bookingReference}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">
-                            {new Date(booking.date).toLocaleDateString()} • {booking.duration} hour(s)
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {booking.vehicle.makeModel} ({booking.vehicle.licensePlate})
-                          </p>
-                          {booking.phone && (
-                            <p className="text-sm text-gray-600">
-                              Contact: {booking.phone}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <p className="text-lg font-medium text-green-600">
-                            ₹{booking.total.toFixed(2)}
-                          </p>
-                          <span
-                            className={`px-3 py-1 rounded-full text-sm ${
-                              booking.status === 'Active'
-                                ? 'bg-green-100 text-green-800'
-                                : booking.status === 'Completed'
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-gray-100 text-gray-800'
-                            }`}
-                          >
-                            {booking.status}
-                          </span>
+        {/* Main Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              {activeTab === 'profile' ? renderProfileTab() : renderVehiclesTab()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Bookings Slide-up Panel */}
+        <AnimatePresence>
+          {showBookings && (
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="absolute inset-0 bg-white rounded-2xl shadow-2xl"
+            >
+              <div className="p-6 border-b flex justify-between items-center">
+                <h3 className="text-xl font-semibold text-gray-800">Your Bookings</h3>
+                <button
+                  onClick={() => setShowBookings(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-5rem)]">
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : error ? (
+                  <div className="text-center py-8">
+                    <div className="text-red-500 mb-2">{error}</div>
+                    <button
+                      onClick={fetchBookings}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                ) : bookings.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Clock className="mx-auto text-gray-400 mb-4" size={48} />
+                    <p className="text-gray-500">No bookings yet</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {bookings.map((booking) => (
+                      <div
+                        key={booking._id}
+                        className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
+                      >
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h4 className="font-semibold text-lg text-gray-800">
+                                {booking.location.name}
+                              </h4>
+                              <p className="text-sm text-gray-500">
+                                Booking Ref: {booking.bookingReference}
+                              </p>
+                            </div>
+                            <span
+                              className={`px-3 py-1 rounded-full text-sm ${
+                                booking.status === 'Active'
+                                  ? 'bg-green-100 text-green-800'
+                                  : booking.status === 'Completed'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}
+                            >
+                              {booking.status}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="flex items-center space-x-3">
+                              <Calendar className="text-gray-400" size={20} />
+                              <div>
+                                <p className="text-sm text-gray-500">Date</p>
+                                <p className="text-gray-700">{new Date(booking.date).toLocaleDateString()}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                              <Clock className="text-gray-400" size={20} />
+                              <div>
+                                <p className="text-sm text-gray-500">Duration</p>
+                                <p className="text-gray-700">{booking.duration} hour(s)</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                              <Car className="text-gray-400" size={20} />
+                              <div>
+                                <p className="text-sm text-gray-500">Vehicle</p>
+                                <p className="text-gray-700">{booking.vehicle.makeModel}</p>
+                                <p className="text-sm text-gray-500">{booking.vehicle.licensePlate}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                              <MapPin className="text-gray-400" size={20} />
+                              <div>
+                                <p className="text-sm text-gray-500">Location</p>
+                                <p className="text-gray-700">{booking.location.address}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center pt-4 border-t">
+                            <div className="flex items-center space-x-2">
+                              <CreditCard className="text-green-500" size={20} />
+                              <span className="text-lg font-semibold text-green-600">
+                                ₹{booking.total.toFixed(2)}
+                              </span>
+                            </div>
+                            {booking.status === 'Active' && (
+                              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                View Details
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
-            )}
-          </div>
-
-          {/* Settings Section */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Settings</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <h4 className="font-semibold">Email Notifications</h4>
-                  <p className="text-sm text-gray-600">Receive booking confirmations and updates</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" defaultChecked />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {activeTab === 'profile' && renderProfileTab()}
-          {activeTab === 'vehicles' && renderVehiclesTab()}
-          {activeTab === 'bookings' && renderBookingsTab()}
-        </div>
-
-        {/* Actions - Fixed at bottom */}
-        <div className="flex justify-end space-x-4 p-4 border-t bg-white flex-shrink-0">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Close
-          </button>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-          >
-            Logout
-          </button>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </motion.div>
   );

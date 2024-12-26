@@ -38,6 +38,29 @@ const ParkingDetails = ({ formData, handleChange }) => {
       </div>
 
       <div className="space-y-2">
+        <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+          Category
+        </label>
+        <select
+          id="category"
+          name="category"
+          value={formData.category || ''}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          required
+        >
+          <option value="">Select Category</option>
+          <option value="Operators">Operators</option>
+          <option value="Monthly/Long-term Partners">Monthly/Long-term Partners</option>
+          <option value="Airport/Railway/Bus Stand Operators">Airport/Railway/Bus Stand Operators</option>
+          <option value="Event and Venue Partnerships">Event and Venue Partnerships</option>
+          <option value="Municipalities">Municipalities</option>
+          <option value="Property Managers">Property Managers</option>
+          <option value="Spot Owners (Personal Parking Renters)">Spot Owners (Personal Parking Renters)</option>
+        </select>
+      </div>
+
+      <div className="space-y-2">
         <label htmlFor="parkingAddress" className="block text-sm font-medium text-gray-700">
           Full Address
         </label>
@@ -114,35 +137,6 @@ const ParkingDetails = ({ formData, handleChange }) => {
           step="0.01"
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           required
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="purposeOfAccess" className="block text-sm font-medium text-gray-700">
-          Purpose of Access
-        </label>
-        <textarea
-          id="purposeOfAccess"
-          name="purposeOfAccess"
-          value={formData.purposeOfAccess || ''}
-          onChange={handleChange}
-          rows={4}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="additionalComments" className="block text-sm font-medium text-gray-700">
-          Additional Comments/Notes
-        </label>
-        <textarea
-          id="additionalComments"
-          name="additionalComments"
-          value={formData.additionalComments || ''}
-          onChange={handleChange}
-          rows={4}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
     </div>

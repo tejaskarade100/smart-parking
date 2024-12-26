@@ -15,11 +15,15 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const logout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    setUser(null);
-    setIsAuthenticated(false);
+  const logout = async () => {
+    return new Promise((resolve) => {
+      // Clear all auth-related data
+      localStorage.clear(); // Clear all localStorage data
+      sessionStorage.clear(); // Clear all sessionStorage data
+      setUser(null);
+      setIsAuthenticated(false);
+      resolve();
+    });
   };
 
   return (

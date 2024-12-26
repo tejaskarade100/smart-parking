@@ -63,7 +63,28 @@ const ParkingAdminRegistrationForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(""); // Clear previous errors
+    
     try {
+      // Basic validation
+      if (!formData.email || !formData.username || !formData.password) {
+        setError('Please fill in all required fields');
+        return;
+      }
+
+      // Email format validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        setError('Please enter a valid email address');
+        return;
+      }
+
+      // Password validation
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match');
+        return;
+      }
+
       const response = await axios.post('http://localhost:5000/api/admin/register', formData);
       
       if (response.data.success) {
@@ -72,11 +93,14 @@ const ParkingAdminRegistrationForm = () => {
         setShowSuccessPopup(true);
         setError("");
       } else {
-        setError(response.data.message);
+        setError(response.data.message || 'Registration failed');
       }
     } catch (error) {
       console.error('Registration error:', error);
-      setError(error.response?.data?.message || 'Registration failed. Please try again.');
+      setError(
+        error.response?.data?.message || 
+        'Registration failed. Please check your information and try again.'
+      );
     }
   };
 

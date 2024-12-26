@@ -9,8 +9,15 @@ const adminRoutes = require('./routes/admin');
 dotenv.config();
 const app = express();
 
+// CORS configuration
+app.use(cors({
+  origin: 'http://localhost:5173', // Allow requests from your Vite dev server
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
@@ -60,12 +67,13 @@ app.use((err, req, res, next) => {
     });
   }
   
-  res.status(err.status || 500).json({ 
-    message: err.message || 'Something went wrong!' 
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error'
   });
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
