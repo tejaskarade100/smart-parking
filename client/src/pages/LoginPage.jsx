@@ -10,6 +10,7 @@ const LoginPage = ({ onClose }) => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { setUser, setIsAuthenticated } = useAuth();
@@ -17,6 +18,7 @@ const LoginPage = ({ onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     setIsLoading(true);
 
     try {
@@ -33,16 +35,22 @@ const LoginPage = ({ onClose }) => {
         }
       } else {
         const response = await api.post('/auth/register', { name, email, password });
-        if (response.data && response.data.message) {
+        if (response.data && response.data._id) {
           setIsLogin(true);
-          setError('Registration successful. Please log in.');
+          setSuccessMessage('Registration successful! Please log in.');
+          setError('');
+          setName('');
+          setEmail('');
+          setPassword('');
         } else {
           setError('Registration failed. Please try again.');
+          setSuccessMessage('');
         }
       }
     } catch (error) {
       console.error('Auth error:', error);
       setError(error.response?.data?.message || 'An error occurred. Please try again.');
+      setSuccessMessage('');
     } finally {
       setIsLoading(false);
     }
@@ -74,6 +82,12 @@ const LoginPage = ({ onClose }) => {
         {error && (
           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
             {error}
+          </div>
+        )}
+        
+        {successMessage && (
+          <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">
+            {successMessage}
           </div>
         )}
 
