@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import DatePicker from 'react-datepicker';
@@ -10,9 +10,13 @@ function SearchForm() {
   const [searchType, setSearchType] = useState('hourly');
   const [location, setLocation] = useState('');
   const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(() => {
+    const date = new Date();
+    date.setHours(date.getHours() + 24);
+    return date;
+  });
   const [startDateInput, setStartDateInput] = useState(format(new Date(), "MMM dd, yyyy HH:mm"));
-  const [endDateInput, setEndDateInput] = useState(format(new Date(), "MMM dd, yyyy HH:mm"));
+  const [endDateInput, setEndDateInput] = useState(format(new Date().setHours(new Date().getHours() + 24), "MMM dd, yyyy HH:mm"));
   const navigate = useNavigate();
 
   const handleSearch = () => {
@@ -35,11 +39,36 @@ function SearchForm() {
     }
   };
 
-  const handleDateInputChange = (inputValue, setDate, setInputValue) => {
+  const handleDateInputChange = (inputValue, setDate, setInputValue, isStartDate = false) => {
     setInputValue(inputValue);
     try {
       const parsedDate = parse(inputValue, "MMM dd, yyyy HH:mm", new Date());
       if (parsedDate instanceof Date && !isNaN(parsedDate)) {
+        const now = new Date();
+        
+        if (isStartDate) {
+          // Prevent selecting time before current time
+          if (parsedDate < now) {
+            setDate(now);
+            setInputValue(format(now, "MMM dd, yyyy HH:mm"));
+            return;
+          }
+          
+          // Update end date to be 24 hours after start date
+          const newEndDate = new Date(parsedDate);
+          newEndDate.setHours(newEndDate.getHours() + 24);
+          setEndDate(newEndDate);
+          setEndDateInput(format(newEndDate, "MMM dd, yyyy HH:mm"));
+        } else {
+          // Prevent selecting end date before start date
+          if (parsedDate <= startDate) {
+            const minEndDate = new Date(startDate);
+            minEndDate.setHours(minEndDate.getHours() + 1);
+            setDate(minEndDate);
+            setInputValue(format(minEndDate, "MMM dd, yyyy HH:mm"));
+            return;
+          }
+        }
         setDate(parsedDate);
       }
     } catch (error) {
@@ -127,19 +156,30 @@ function SearchForm() {
             <input
               type="text"
               value={startDateInput}
-              onChange={(e) => handleDateInputChange(e.target.value, setStartDate, setStartDateInput)}
+              onChange={(e) => handleDateInputChange(e.target.value, setStartDate, setStartDateInput, true)}
               placeholder="MMM DD, YYYY HH:MM"
               className="w-full px-10 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             />
             <DatePicker
               selected={startDate}
               onChange={(date) => {
+                const now = new Date();
+                if (date < now) {
+                  date = now;
+                }
                 setStartDate(date);
                 setStartDateInput(format(date, "MMM dd, yyyy HH:mm"));
+                
+                // Update end date to be 24 hours after start date
+                const newEndDate = new Date(date);
+                newEndDate.setHours(newEndDate.getHours() + 24);
+                setEndDate(newEndDate);
+                setEndDateInput(format(newEndDate, "MMM dd, yyyy HH:mm"));
               }}
               showTimeSelect
               timeFormat="HH:mm"
-              timeIntervals={15}
+              timeIntervals={60}
+              minDate={new Date()}
               timeCaption="time"
               dateFormat="MMM d, yyyy h:mm aa"
               customInput={
@@ -158,19 +198,28 @@ function SearchForm() {
             <input
               type="text"
               value={endDateInput}
-              onChange={(e) => handleDateInputChange(e.target.value, setEndDate, setEndDateInput)}
+              onChange={(e) => handleDateInputChange(e.target.value, setEndDate, setEndDateInput, false)}
               placeholder="MMM DD, YYYY HH:MM"
               className="w-full px-10 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             />
             <DatePicker
               selected={endDate}
               onChange={(date) => {
+                // Ensure minimum 1 hour difference
+                const minEndDate = new Date(startDate);
+                minEndDate.setHours(minEndDate.getHours() + 1);
+                
+                if (date <= startDate || date < minEndDate) {
+                  date = minEndDate;
+                }
+                
                 setEndDate(date);
                 setEndDateInput(format(date, "MMM dd, yyyy HH:mm"));
               }}
               showTimeSelect
               timeFormat="HH:mm"
-              timeIntervals={15}
+              timeIntervals={60}
+              minDate={startDate}
               timeCaption="time"
               dateFormat="MMM d, yyyy h:mm aa"
               customInput={
