@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import PersonalInformation from "../ParkingAdminRegistration/PersonalInformation";
-import Credentials from "../ParkingAdminRegistration/Credentials";
-import ParkingDetails from "../ParkingAdminRegistration/ParkingDetails";
-import SecurityAndAccess from "../ParkingAdminRegistration/SecurityAndAccess";
-import VerificationDetails from "../ParkingAdminRegistration/VerificationDetails";
-import ReviewAndSubmit from "../ParkingAdminRegistration/ReviewAndSubmit";
+import PersonalInformation from "../components/AdminRegistration/PersonalInformation";
+import Credentials from "../components/AdminRegistration/Credentials";
+import ParkingDetails from "../components/AdminRegistration/ParkingDetails";
+import SecurityAndAccess from "../components/AdminRegistration/SecurityAndAccess";
+import VerificationDetails from "../components/AdminRegistration/VerificationDetails";
+import ReviewAndSubmit from "../components/AdminRegistration/ReviewAndSubmit";
 
 const steps = [
   { id: 1, name: "Personal Information", component: PersonalInformation },
@@ -109,111 +109,95 @@ const ParkingAdminRegistrationForm = () => {
     navigate('/admin/dashboard');
   };
 
-  const CurrentStepComponent = steps[currentStep - 1].component;
-
+  const CurrentStep = steps[currentStep - 1].component;
+  
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"> 
+    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
-          </div>
-        )}
-        
-        <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 text-center">
-              Parking Admin Registration
-            </h2>
-            <div className="mt-4">
-              <div className="relative">
-                <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200">
-                  <div
-                    style={{ width: `${(currentStep / steps.length) * 100}%` }}
-                    className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 transition-all duration-500"
-                  />
-                </div>
-                <div className="flex justify-between">
-                  {steps.map((step) => (
-                    <div
-                      key={step.id}
-                      className={`flex flex-col items-center ${
-                        step.id === currentStep
-                          ? "text-blue-600"
-                          : step.id < currentStep
-                          ? "text-green-600"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      <div
-                        className={`rounded-full transition duration-500 ease-in-out h-6 w-6 flex items-center justify-center ${
-                          step.id === currentStep
-                            ? "bg-blue-600 text-white"
-                            : step.id < currentStep
-                            ? "bg-green-600 text-white"
-                            : "bg-gray-300"
-                        }`}
-                      >
-                        {step.id < currentStep ? "✓" : step.id}
-                      </div>
-                      <div className="text-xs mt-1">{step.name}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmit}>
-              <CurrentStepComponent formData={formData} handleChange={handleChange} />
-              
-              <div className="mt-8 flex justify-between">
-                {currentStep > 1 && (
-                  <button
-                    type="button"
-                    onClick={handlePrevious}
-                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors"
-                  >
-                    Previous
-                  </button>
-                )}
-                
-                {currentStep < steps.length ? (
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors ml-auto"
-                  >
-                    Next
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors ml-auto"
-                  >
-                    Submit
-                  </button>
-                )}
-              </div>
-            </form>
-          </div>
-
-          {/* Success Popup */}
-          {showSuccessPopup && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-              <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4">
-                <h3 className="text-2xl font-bold text-green-600 mb-4">Registration Successful!</h3>
-                <p className="text-gray-600 mb-6">
-                  Your parking admin account has been created successfully. You can now access your dashboard.
-                </p>
-                <button
-                  onClick={handleDashboardAccess}
-                  className="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors"
+        {/* Progress Steps */}
+        <nav className="mb-8">
+          <ol className="flex items-center justify-center space-x-4">
+            {steps.map((step) => (
+              <li
+                key={step.id}
+                className={`flex items-center ${
+                  currentStep === step.id ? "text-indigo-600" : "text-gray-500"
+                }`}
+              >
+                <span
+                  className={`w-8 h-8 flex items-center justify-center rounded-full ${
+                    currentStep === step.id
+                      ? "bg-indigo-600 text-white"
+                      : currentStep > step.id
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-200"
+                  }`}
                 >
-                  Access Dashboard
-                </button>
-              </div>
-            </div>
-          )}
+                  {currentStep > step.id ? "✓" : step.id}
+                </span>
+                <span className="ml-2 text-sm font-medium">{step.name}</span>
+                {step.id !== steps.length && (
+                  <span className="ml-4 text-gray-300">/</span>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
+
+        {/* Form */}
+        <div className="bg-white shadow rounded-lg">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="p-8"
+            >
+              {showSuccessPopup ? (
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold text-green-600 mb-4">Registration Successful!</h2>
+                  <p className="text-gray-600 mb-8">Your parking admin account has been created successfully. You can now access your dashboard.</p>
+                  <button
+                    onClick={() => navigate('/admin/dashboard')}
+                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Access Dashboard
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <CurrentStep
+                    formData={formData}
+                    handleChange={handleChange}
+                    onSubmit={currentStep === steps.length ? handleSubmit : undefined}
+                  />
+                  {error && (
+                    <div className="mt-4 text-red-600 text-sm">{error}</div>
+                  )}
+                  <div className="mt-8 flex justify-between">
+                    {currentStep > 1 && (
+                      <button
+                        onClick={handlePrevious}
+                        className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        Previous
+                      </button>
+                    )}
+                    {currentStep < steps.length && (
+                      <button
+                        onClick={handleNext}
+                        className="ml-auto inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        Next
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>

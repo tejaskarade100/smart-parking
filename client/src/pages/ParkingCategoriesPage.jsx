@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import Header from '../ParkingCategories/Header';
-import CategoryCard from '../ParkingCategories/CategoryCard';
-import Footer from '../ParkingCategories/Footer';
-import DetailModal from '../ParkingCategories/DetailModal';
-import { categories } from '../ParkingCategories/data/categories';
+import Header from '../components/ParkingCategories/Header';
+import CategoryCard from '../components/ParkingCategories/CategoryCard';
+import Footer from '../components/ParkingCategories/Footer';
+import DetailModal from '../components/ParkingCategories/DetailModal';
+import { categories } from '../components/ParkingCategories/data/categories';
 
 const ParkingCategoriesPage = () => {
   const navigate = useNavigate();

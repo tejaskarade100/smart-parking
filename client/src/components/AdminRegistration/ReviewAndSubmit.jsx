@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ReviewAndSubmit = ({ formData }) => {
+const ReviewAndSubmit = ({ formData, onSubmit }) => {
   return (
     <div className="space-y-6">
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
@@ -74,9 +74,15 @@ const ReviewAndSubmit = ({ formData }) => {
       </div>
 
       <div className="bg-gray-50 px-4 py-3 sm:px-6">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 mb-4">
           By submitting this form, you agree to our terms and conditions and privacy policy.
         </p>
+        <button
+          onClick={onSubmit}
+          className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          Submit Registration
+        </button>
       </div>
     </div>
   );

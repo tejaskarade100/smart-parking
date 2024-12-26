@@ -8,7 +8,7 @@ import Profile from './components/Profile';
 import BookingConfirmation from './components/BookingConfirmation';
 import ParkingCategoriesPage from './pages/ParkingCategoriesPage';
 import ParkingAdminRegistrationForm from './pages/ParkingAdminRegistrationForm';
-import AdminDashboard from './AdminControl/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   const { user } = useAuth();
