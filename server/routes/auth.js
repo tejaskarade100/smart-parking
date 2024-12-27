@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Admin = require('../models/Admin');
 
 // Register User
 router.post('/register', async (req, res) => {
@@ -48,33 +49,59 @@ router.post('/register', async (req, res) => {
 // Login User
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, isAdmin } = req.body;
 
-    // Check for user email
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+    if (isAdmin) {
+      // Admin Login
+      const admin = await Admin.findOne({ email });
+      if (!admin) {
+        return res.status(400).json({ message: 'Invalid admin credentials' });
+      }
+
+      const isMatch = await admin.comparePassword(password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid admin credentials' });
+      }
+
+      const token = jwt.sign(
+        { adminId: admin._id },
+        process.env.JWT_SECRET,
+        { expiresIn: '30d' }
+      );
+
+      return res.json({
+        _id: admin._id,
+        name: admin.fullName,
+        email: admin.email,
+        isAdmin: true,
+        token
+      });
+    } else {
+      // Regular User Login
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+      }
+
+      const token = jwt.sign(
+        { userId: user._id },
+        process.env.JWT_SECRET,
+        { expiresIn: '30d' }
+      );
+
+      res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        isAdmin: false,
+        token
+      });
     }
-
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
-    // Create token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' }
-    );
-
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      token
-    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server Error' });

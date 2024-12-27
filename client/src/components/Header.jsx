@@ -9,7 +9,7 @@ import { Smartphone, User, LogIn, Car, Handshake } from 'lucide-react';
 function Header() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const handleAccountClick = () => {
@@ -22,6 +22,10 @@ function Header() {
 
   const handlePartnerClick = () => {
     navigate('/parking-categories');
+  };
+
+  const handleAdminDashboardClick = () => {
+    navigate('/admin/dashboard');
   };
 
   const headerVariants = {
@@ -96,6 +100,20 @@ function Header() {
               <span>Get the App</span>
             </motion.button>
 
+            {isAdmin && (
+              <motion.button
+                onClick={handleAdminDashboardClick}
+                className="inline-flex items-center space-x-2 px-4 py-2 border border-blue-600 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                variants={buttonVariants}
+                initial="initial"
+                whileHover="hover"
+                whileTap="tap"
+              >
+                <User className="w-5 h-5" />
+                <span>Admin Dashboard</span>
+              </motion.button>
+            )}
+
             <motion.button
               onClick={handlePartnerClick}
               className="inline-flex items-center space-x-2 px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors duration-200"
@@ -105,36 +123,29 @@ function Header() {
               whileTap="tap"
             >
               <Handshake className="w-5 h-5" />
-              <span>Partner with us</span>
+              <span>Partner with Us</span>
             </motion.button>
-            
-            <AnimatePresence>
+
+            <motion.button
+              onClick={handleAccountClick}
+              className="inline-flex items-center space-x-2 px-4 py-2 border rounded-md hover:bg-gray-50 transition-colors duration-200"
+              variants={buttonVariants}
+              initial="initial"
+              whileHover="hover"
+              whileTap="tap"
+            >
               {isAuthenticated ? (
-                <motion.button 
-                  onClick={handleAccountClick}
-                  className="inline-flex items-center space-x-2 px-4 py-2 hover:bg-gray-50 rounded-md transition-colors duration-200"
-                  variants={buttonVariants}
-                  initial="initial"
-                  whileHover="hover"
-                  whileTap="tap"
-                >
-                  <User className="w-5 h-5 text-blue-600" />
-                  <span>{user?.name || 'My Profile'}</span>
-                </motion.button>
+                <>
+                  <User className="w-5 h-5" />
+                  <span>{user?.name || 'Account'}</span>
+                </>
               ) : (
-                <motion.button 
-                  onClick={handleAccountClick}
-                  className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
-                  variants={buttonVariants}
-                  initial="initial"
-                  whileHover="hover"
-                  whileTap="tap"
-                >
+                <>
                   <LogIn className="w-5 h-5" />
                   <span>Login</span>
-                </motion.button>
+                </>
               )}
-            </AnimatePresence>
+            </motion.button>
           </nav>
         </div>
       </motion.header>
@@ -143,6 +154,9 @@ function Header() {
         {showLoginModal && (
           <LoginPage onClose={() => setShowLoginModal(false)} />
         )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {showProfileModal && (
           <Profile onClose={() => setShowProfileModal(false)} />
         )}

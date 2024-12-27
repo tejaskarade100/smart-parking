@@ -6,6 +6,7 @@ import api from '../api/axios';
 
 const LoginPage = ({ onClose }) => {
   const [isLogin, setIsLogin] = useState(true);
+  const [isAdminLogin, setIsAdminLogin] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -13,7 +14,7 @@ const LoginPage = ({ onClose }) => {
   const [successMessage, setSuccessMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { setUser, setIsAuthenticated } = useAuth();
+  const { setUser, setIsAuthenticated, setIsAdmin } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,17 +24,27 @@ const LoginPage = ({ onClose }) => {
 
     try {
       if (isLogin) {
-        const response = await api.post('/auth/login', { email, password });
+        const response = await api.post('/auth/login', { 
+          email, 
+          password,
+          isAdmin: isAdminLogin 
+        });
+        
         if (response.data && response.data.token) {
           localStorage.setItem('token', response.data.token);
           setUser(response.data);
           setIsAuthenticated(true);
+          setIsAdmin(response.data.isAdmin);
           localStorage.setItem("user", JSON.stringify(response.data));
           onClose && onClose();
         } else {
           setError('Invalid response from server');
         }
       } else {
+        if (isAdminLogin) {
+          setError('Admin registration is not allowed here. Please use the admin registration form.');
+          return;
+        }
         const response = await api.post('/auth/register', { name, email, password });
         if (response.data && response.data._id) {
           setIsLogin(true);
@@ -79,6 +90,32 @@ const LoginPage = ({ onClose }) => {
           {isLogin ? 'Welcome Back!' : 'Create Account'}
         </h2>
 
+        {/* Login Type Toggle */}
+        {isLogin && (
+          <div className="flex justify-center space-x-4 mb-6">
+            <button
+              onClick={() => setIsAdminLogin(false)}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                !isAdminLogin
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              User
+            </button>
+            <button
+              onClick={() => setIsAdminLogin(true)}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                isAdminLogin
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Admin
+            </button>
+          </div>
+        )}
+
         {error && (
           <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
             {error}
@@ -92,7 +129,7 @@ const LoginPage = ({ onClose }) => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {!isLogin && (
+          {!isLogin && !isAdminLogin && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Name
@@ -161,14 +198,16 @@ const LoginPage = ({ onClose }) => {
           </button>
         </form>
 
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-blue-600 hover:text-blue-700 text-sm"
-          >
-            {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Login'}
-          </button>
-        </div>
+        {!isAdminLogin && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-blue-600 hover:text-blue-700 text-sm"
+            >
+              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Login'}
+            </button>
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );
