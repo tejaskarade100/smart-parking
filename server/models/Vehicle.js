@@ -4,11 +4,11 @@ const vehicleSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'User ID is required']
+    required: true
   },
   makeModel: {
     type: String,
-    required: [true, 'Please provide make and model'],
+    required: [true, 'Please provide vehicle make and model'],
     trim: true,
     minlength: [2, 'Make and model must be at least 2 characters long'],
     maxlength: [50, 'Make and model cannot exceed 50 characters']
@@ -24,11 +24,17 @@ const vehicleSchema = new mongoose.Schema({
   },
   state: {
     type: String,
-    required: [true, 'Please provide state'],
+    required: [true, 'Please provide registration state'],
     trim: true,
     uppercase: true,
     minlength: [2, 'State must be at least 2 characters long'],
     maxlength: [2, 'State must be exactly 2 characters']
+  },
+  category: {
+    type: String,
+    enum: ['two-wheeler', 'four-wheeler'],
+    required: [true, 'Please specify vehicle category'],
+    default: 'four-wheeler'
   }
 }, {
   timestamps: true

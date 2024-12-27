@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import Sidebar from '../components/Admin/Sidebar';
+import AdminLayout from '../components/Admin/AdminLayout';
 import MainContent from '../components/Admin/MainContent';
-import AdminHeader from '../components/Admin/AdminHeader';
 import { useAuth } from '../context/AuthContext';
 
-const Dashboard = () => {
+const AdminDashboard = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const { isAdmin } = useAuth();
@@ -31,21 +30,10 @@ const Dashboard = () => {
   }
 
   return (
-    <>
-      <AdminHeader />
-      <div className="flex h-screen bg-gray-100 pt-20">
-        <Sidebar />
-        <motion.div 
-          className="flex-1 overflow-hidden"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <MainContent />
-        </motion.div>
-      </div>
-    </>
+    <AdminLayout>
+      <MainContent />
+    </AdminLayout>
   );
 };
 
-export default Dashboard;
+export default AdminDashboard;

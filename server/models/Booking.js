@@ -19,6 +19,11 @@ const bookingSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  admin: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Admin',
+    required: true
+  },
   vehicle: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Vehicle',
@@ -53,7 +58,7 @@ const bookingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Active', 'Completed', 'Cancelled'],
+    enum: ['Active', 'Completed', 'Cancelled', 'Pending'],
     default: 'Active'
   },
   paymentStatus: {

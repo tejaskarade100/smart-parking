@@ -2,23 +2,71 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import StatCard from './StatCard';
 import ParkingStatusVisualization from './ParkingStatusVisualization';
-import { Car, Bike, DollarSign, Clock } from 'lucide-react';
+import { Car, Bike, IndianRupee, Clock } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../api/axios';
 
 const MainContent = () => {
-  const [parkingSpaces, setParkingSpaces] = useState({
-    twoWheelers: 0,
-    fourWheelers: 0
+  const { user } = useAuth();
+  const [stats, setStats] = useState({
+    totalSpaces: parseInt(user?.totalSpaces) || 0,
+    availableSpaces: 0,
+    revenue: 0,
+    pendingBookings: 0,
+    twoWheelerAvailable: 0,
+    fourWheelerAvailable: 0,
+    twoWheelerTotal: parseInt(user?.twoWheelerSpaces) || 0,
+    fourWheelerTotal: parseInt(user?.fourWheelerSpaces) || 0
   });
 
   useEffect(() => {
-    // Get the parking spaces from localStorage
-    const twoWheelers = parseInt(localStorage.getItem('adminTwoWheelerSpaces')) || 0;
-    const fourWheelers = parseInt(localStorage.getItem('adminFourWheelerSpaces')) || 0;
-    setParkingSpaces({
-      twoWheelers,
-      fourWheelers
-    });
-  }, []);
+    // Update total spaces when user data changes
+    setStats(prev => ({
+      ...prev,
+      totalSpaces: parseInt(user?.totalSpaces) || 0,
+      twoWheelerTotal: parseInt(user?.twoWheelerSpaces) || 0,
+      fourWheelerTotal: parseInt(user?.fourWheelerSpaces) || 0
+    }));
+  }, [user]);
+
+  const fetchStats = async () => {
+    try {
+      if (!user?._id) {
+        console.log('No user ID available');
+        return;
+      }
+
+      // Get bookings stats
+      const statsResponse = await api.get(`/api/admin/stats/${user._id}`);
+      const { activeBookings, completedBookings, revenue } = statsResponse.data;
+
+      // Calculate available spaces
+      const twoWheelerBooked = activeBookings.filter(b => b.vehicleType === 'two-wheeler').length;
+      const fourWheelerBooked = activeBookings.filter(b => b.vehicleType === 'four-wheeler').length;
+      const twoWheelerAvailable = Math.max(0, stats.twoWheelerTotal - twoWheelerBooked);
+      const fourWheelerAvailable = Math.max(0, stats.fourWheelerTotal - fourWheelerBooked);
+      const availableSpaces = twoWheelerAvailable + fourWheelerAvailable;
+
+      setStats(prev => ({
+        ...prev,
+        availableSpaces,
+        revenue,
+        pendingBookings: activeBookings.length,
+        twoWheelerAvailable,
+        fourWheelerAvailable
+      }));
+    } catch (error) {
+      console.error('Error fetching stats:', error.response?.data || error.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+    // Set up polling for real-time updates
+    const interval = setInterval(fetchStats, 5000); // Update every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [user?._id]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -29,8 +77,6 @@ const MainContent = () => {
       }
     }
   };
-
-  const totalSpaces = parkingSpaces.twoWheelers + parkingSpaces.fourWheelers;
 
   return (
     <div className="p-8 h-full overflow-y-auto">
@@ -51,33 +97,33 @@ const MainContent = () => {
       >
         <StatCard 
           title="Total Parking Spaces" 
-          value={totalSpaces.toString()} 
+          value={stats.totalSpaces.toString()} 
           icon={<Car className="w-8 h-8 text-blue-500" />}
           details={[
-            { label: 'Two-wheelers', value: parkingSpaces.twoWheelers.toString() },
-            { label: 'Four-wheelers', value: parkingSpaces.fourWheelers.toString() }
+            { label: 'Two-wheelers', value: stats.twoWheelerTotal.toString() },
+            { label: 'Four-wheelers', value: stats.fourWheelerTotal.toString() }
           ]}
         />
         <StatCard 
           title="Available Slots" 
-          value="73" 
+          value={stats.availableSpaces.toString()} 
           icon={<Bike className="w-8 h-8 text-green-500" />}
           details={[
-            { label: 'Two-wheelers', value: '28' },
-            { label: 'Four-wheelers', value: '45' }
+            { label: 'Two-wheelers', value: stats.twoWheelerAvailable.toString() },
+            { label: 'Four-wheelers', value: stats.fourWheelerAvailable.toString() }
           ]}
         />
         <StatCard 
           title="Revenue" 
-          value="$1,250" 
-          icon={<DollarSign className="w-8 h-8 text-yellow-500" />}
-          details={[{ label: "Today's earnings", value: '' }]}
+          value={`₹${stats.revenue}`}
+          icon={<IndianRupee className="w-8 h-8 text-yellow-500" />}
+          details={[{ label: "Total earnings", value: `₹${stats.revenue}` }]}
         />
         <StatCard 
-          title="Pending Bookings" 
-          value="5" 
+          title="Active Bookings" 
+          value={stats.pendingBookings.toString()} 
           icon={<Clock className="w-8 h-8 text-red-500" />}
-          details={[{ label: 'Awaiting approval', value: '' }]}
+          details={[{ label: 'Currently parked', value: stats.pendingBookings.toString() }]}
         />
       </motion.div>
 

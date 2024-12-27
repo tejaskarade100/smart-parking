@@ -9,6 +9,7 @@ import BookingConfirmation from './components/BookingConfirmation';
 import ParkingCategoriesPage from './pages/ParkingCategoriesPage';
 import ParkingAdminRegistrationForm from './pages/ParkingAdminRegistrationForm';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminBookings from './pages/AdminBookings';
 
 function App() {
   const { user, isAdmin } = useAuth();
@@ -43,6 +44,14 @@ function App() {
               element={
                 <ProtectedAdminRoute>
                   <AdminDashboard />
+                </ProtectedAdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/bookings" 
+              element={
+                <ProtectedAdminRoute>
+                  <AdminBookings />
                 </ProtectedAdminRoute>
               } 
             />

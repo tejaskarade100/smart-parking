@@ -111,7 +111,7 @@ router.post('/bookings', protect, async (req, res) => {
     console.log('User:', req.user);
     console.log('Request body:', req.body);
 
-    const { vehicleId, location, phone, total, duration } = req.body;
+    const { vehicleId, location, phone, total, duration, startDateTime, endDateTime, adminId, userName, userEmail } = req.body;
 
     // Log validation data
     console.log('Validation Data:', {
@@ -151,10 +151,15 @@ router.post('/bookings', protect, async (req, res) => {
       return res.status(404).json({ message: 'Vehicle not found or does not belong to user' });
     }
 
+    // Determine vehicle type based on vehicle model or category
+    const vehicleType = vehicle.category || 'four-wheeler'; // Default to four-wheeler if not specified
+
     // Create booking object
     const bookingData = {
       user: req.user.id,
       vehicle: vehicleId,
+      admin: req.body.adminId,
+      vehicleType: vehicleType,
       location: {
         name: location.name,
         address: location.address || '',
@@ -164,11 +169,19 @@ router.post('/bookings', protect, async (req, res) => {
         }
       },
       date: new Date(),
+      startTime: new Date(req.body.startDateTime),
+      endTime: new Date(req.body.endDateTime),
       duration: Number(duration),
       total: Number(total),
       phone: phone?.trim() || '',
       status: 'Active',
-      paymentStatus: 'Paid'
+      paymentStatus: 'Paid',
+      userName: req.body.userName,
+      userEmail: req.body.userEmail,
+      parkingName: location.name,
+      parkingAddress: location.address || '',
+      parkingType: location.parkingType || 'Standard',
+      spotNumber: 'A-' + Math.floor(Math.random() * 100 + 1)
     };
 
     console.log('Creating booking with data:', bookingData);

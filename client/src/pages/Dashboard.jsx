@@ -5,37 +5,43 @@ import ParkingMap from '../components/ParkingMap';
 import ParkingLocationCard from '../components/ParkingLocationCard';
 import BookNow from '../components/BookNow';
 import SearchForm from '../components/SearchForm';
+import axios from 'axios';
 
-// Function to generate random parking spots around a location
-const generateParkingSpots = async (location = 'Pune') => {
+// Function to fetch real parking spots from admins
+const fetchParkingSpots = async (location = 'Pune') => {
   try {
-    // Use OpenStreetMap Nominatim API to get coordinates
-    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`);
-    const data = await response.json();
+    // First get coordinates for the searched location
+    const geoResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`);
+    const geoData = await geoResponse.json();
     
-    if (data && data[0]) {
-      const { lat, lon } = data[0];
-      const baseLocation = { lat: parseFloat(lat), lng: parseFloat(lon) };
+    if (geoData && geoData[0]) {
+      const { lat, lon } = geoData[0];
       
-      // Generate 5 random parking spots around the location
-      const spots = [];
-      const baseRates = [40, 50, 60, 70, 80]; // Different rates for spots
+      // Fetch parking spots from our backend
+      const response = await axios.get(`/api/admin/parking-spots?location=${encodeURIComponent(location)}`);
+      const adminSpots = response.data;
       
-      for (let i = 0; i < 5; i++) {
-        spots.push({
-          name: `${location} Parking Spot ${i + 1}`,
-          lat: baseLocation.lat + (Math.random() - 0.5) * 0.05,
-          lng: baseLocation.lng + (Math.random() - 0.5) * 0.05,
-          spotRate: baseRates[i], // Assign different rates
-          price: `₹${baseRates[i]}/hr`,
-          facilities: ["Covered Parking", "24/7 Security"]
-        });
-      }
-      return spots;
+      // Transform admin data to match our parking spot format
+      return adminSpots.map(spot => ({
+        name: spot.parkingName,
+        adminId: spot._id,
+        lat: spot.latitude || parseFloat(lat), // Use admin's lat or center location
+        lng: spot.longitude || parseFloat(lon), // Use admin's lng or center location
+        spotRate: spot.hourlyRate,
+        price: `₹${spot.hourlyRate}/hr`,
+        facilities: spot.facilities || ["Covered Parking", "24/7 Security"],
+        address: spot.parkingAddress,
+        city: spot.city,
+        state: spot.state,
+        parkingType: spot.parkingType,
+        category: spot.category,
+        twoWheelerSpaces: spot.twoWheelerSpaces,
+        fourWheelerSpaces: spot.fourWheelerSpaces
+      }));
     }
     return [];
   } catch (error) {
-    console.error('Error generating parking spots:', error);
+    console.error('Error fetching parking spots:', error);
     return [];
   }
 };
@@ -47,7 +53,6 @@ const Dashboard = () => {
   const [showBookNow, setShowBookNow] = useState(false);
   const [bookingLocation, setBookingLocation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [bookingDateTime, setBookingDateTime] = useState(new Date());
   const [searchDateTime, setSearchDateTime] = useState({
     startDateTime: null,
     endDateTime: null
@@ -55,16 +60,15 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (state?.startDateTime && state?.endDateTime) {
-      console.log('Setting search date time:', state);
       setSearchDateTime({
         startDateTime: state.startDateTime,
         endDateTime: state.endDateTime
       });
     }
-    const fetchParkingSpots = async () => {
+    const loadParkingSpots = async () => {
       setIsLoading(true);
       if (state?.location) {
-        const spots = await generateParkingSpots(state.location);
+        const spots = await fetchParkingSpots(state.location);
         setParkingSpots(spots);
         if (spots.length > 0) {
           setSelectedLocation(spots[0]);
@@ -73,26 +77,22 @@ const Dashboard = () => {
       setIsLoading(false);
     };
 
-    fetchParkingSpots();
+    loadParkingSpots();
   }, [state?.location, state?.startDateTime, state?.endDateTime]);
 
   const handleLocationSelect = (location) => {
-    console.log('Selected location:', location);
     setSelectedLocation(location);
   };
 
   const handleBookNow = (location) => {
-    console.log('Booking location with data:', { location, searchDateTime });
     setBookingLocation({
       ...location,
-      spotRate: location.spotRate || location.rate || 40 // Ensure rate is passed
+      spotRate: location.spotRate || location.hourlyRate || 40
     });
-    setBookingDateTime(searchDateTime);
     setShowBookNow(true);
   };
 
   const handleSearchSubmit = (dateTime) => {
-    console.log('Search date time:', dateTime);
     setSearchDateTime({
       startDateTime: dateTime.startDateTime,
       endDateTime: dateTime.endDateTime

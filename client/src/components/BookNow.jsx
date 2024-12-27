@@ -85,6 +85,7 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
       // Prepare booking data
       const bookingData = {
         vehicleId: selectedVehicle,
+        adminId: location.adminId, // Add admin ID
         location: {
           name: location.name,
           address: location.address || '',
@@ -100,7 +101,9 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
         startDateTime: new Date(bookingDateTime.startDateTime).toISOString(),
         endDateTime: new Date(bookingDateTime.endDateTime).toISOString(),
         hourlyRate: location.spotRate,
-        rate: location.spotRate // Add rate field for compatibility
+        rate: location.spotRate,
+        userName: user.name, // Add user name
+        userEmail: user.email // Add user email
       };
 
       console.log('Submitting booking with data:', bookingData);

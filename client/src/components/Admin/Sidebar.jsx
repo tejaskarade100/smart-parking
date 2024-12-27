@@ -1,56 +1,60 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Home, MapPin, RefreshCw, ClipboardList, Settings, User } from 'lucide-react';
+import { Home, FileText, Settings, LogOut } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
-const menuItems = [
-  { icon: Home, label: 'Dashboard' },
-  { icon: MapPin, label: 'Design Parking' },
-  { icon: RefreshCw, label: 'Update Details' },
-  { icon: ClipboardList, label: 'Booking History' },
-  { icon: Settings, label: 'Settings' },
-];
+const Sidebar = () => {
+  const location = useLocation();
+  const { logout } = useAuth();
 
-const Sidebar = ({ onProfileClick }) => {
+  const menuItems = [
+    { icon: Home, text: 'Dashboard', path: '/admin/dashboard' },
+    { icon: FileText, text: 'Bookings', path: '/admin/bookings' },
+    { icon: Settings, text: 'Settings', path: '/admin/settings' },
+  ];
+
+  const isActive = (path) => location.pathname === path;
+
   return (
-    <motion.aside 
-      className="w-64 bg-blue-600 text-white p-6"
-      initial={{ x: -100 }}
+    <motion.div
+      initial={{ x: -250 }}
       animate={{ x: 0 }}
-      transition={{ type: 'spring', stiffness: 100 }}
+      className="bg-white h-screen w-64 fixed left-0 shadow-lg pt-20"
     >
-      <div className="flex items-center mb-8">
-        <motion.div
-          className="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-            <rect width="18" height="18" x="3" y="3" rx="2" />
-            <path d="M7 7h.01" />
-            <path d="M17 7h.01" />
-            <path d="M7 17h.01" />
-            <path d="M17 17h.01" />
-          </svg>
-        </motion.div>
-        <h1 className="text-2xl font-bold">ParkEase</h1>
-      </div>
-      <nav>
-        <ul className="space-y-4">
+      <div className="flex flex-col h-full">
+        <div className="flex-1">
           {menuItems.map((item, index) => (
-            <motion.li 
-              key={item.label}
-              whileHover={{ x: 5 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <a href="#" className="flex items-center py-2 px-4 rounded hover:bg-blue-700 transition-colors duration-200">
-                <item.icon className="w-5 h-5 mr-3 text-white" />
-                <span className="font-semibold text-white">{item.label}</span> {/* Added font-semibold class */}
-              </a>
-            </motion.li>
+            <Link to={item.path} key={index}>
+              <motion.div
+                className={`flex items-center space-x-3 px-6 py-3 cursor-pointer transition-colors duration-200 ${
+                  isActive(item.path)
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+                whileHover={{ x: 5 }}
+              >
+                <item.icon className="w-5 h-5" />
+                <span className="font-medium">{item.text}</span>
+              </motion.div>
+            </Link>
           ))}
-        </ul>
-      </nav>
-    </motion.aside>
+        </div>
+
+        <motion.div
+          className="px-6 py-4 border-t"
+          whileHover={{ x: 5 }}
+        >
+          <button
+            onClick={logout}
+            className="flex items-center space-x-3 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">Logout</span>
+          </button>
+        </motion.div>
+      </div>
+    </motion.div>
   );
 };
 
