@@ -24,10 +24,6 @@ function Header() {
     navigate('/parking-categories');
   };
 
-  const handleAdminDashboardClick = () => {
-    navigate('/admin/dashboard');
-  };
-
   const headerVariants = {
     hidden: { y: -50, opacity: 0 },
     visible: { 
@@ -99,20 +95,6 @@ function Header() {
               <Smartphone className="w-5 h-5" />
               <span>Get the App</span>
             </motion.button>
-
-            {isAdmin && (
-              <motion.button
-                onClick={handleAdminDashboardClick}
-                className="inline-flex items-center space-x-2 px-4 py-2 border border-blue-600 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
-                variants={buttonVariants}
-                initial="initial"
-                whileHover="hover"
-                whileTap="tap"
-              >
-                <User className="w-5 h-5" />
-                <span>Admin Dashboard</span>
-              </motion.button>
-            )}
 
             <motion.button
               onClick={handlePartnerClick}

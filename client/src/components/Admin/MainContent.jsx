@@ -1,10 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import StatCard from './StatCard';
 import ParkingStatusVisualization from './ParkingStatusVisualization';
 import { Car, Bike, DollarSign, Clock } from 'lucide-react';
 
 const MainContent = () => {
+  const [parkingSpaces, setParkingSpaces] = useState({
+    twoWheelers: 0,
+    fourWheelers: 0
+  });
+
+  useEffect(() => {
+    // Get the parking spaces from localStorage
+    const twoWheelers = parseInt(localStorage.getItem('adminTwoWheelerSpaces')) || 0;
+    const fourWheelers = parseInt(localStorage.getItem('adminFourWheelerSpaces')) || 0;
+    setParkingSpaces({
+      twoWheelers,
+      fourWheelers
+    });
+  }, []);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -14,6 +29,8 @@ const MainContent = () => {
       }
     }
   };
+
+  const totalSpaces = parkingSpaces.twoWheelers + parkingSpaces.fourWheelers;
 
   return (
     <div className="p-8 h-full overflow-y-auto">
@@ -34,11 +51,11 @@ const MainContent = () => {
       >
         <StatCard 
           title="Total Parking Spaces" 
-          value="150" 
+          value={totalSpaces.toString()} 
           icon={<Car className="w-8 h-8 text-blue-500" />}
           details={[
-            { label: 'Two-wheelers', value: '50' },
-            { label: 'Four-wheelers', value: '100' }
+            { label: 'Two-wheelers', value: parkingSpaces.twoWheelers.toString() },
+            { label: 'Four-wheelers', value: parkingSpaces.fourWheelers.toString() }
           ]}
         />
         <StatCard 

@@ -71,8 +71,20 @@ router.post('/login', async (req, res) => {
 
       return res.json({
         _id: admin._id,
-        name: admin.fullName,
+        fullName: admin.fullName,
         email: admin.email,
+        phone: admin.phone,
+        address: admin.address,
+        city: admin.city,
+        state: admin.state,
+        zipCode: admin.zipCode,
+        parkingName: admin.parkingName,
+        parkingType: admin.parkingType,
+        category: admin.category,
+        parkingAddress: admin.parkingAddress,
+        totalSpaces: admin.totalSpaces,
+        twoWheelerSpaces: admin.twoWheelerSpaces,
+        fourWheelerSpaces: admin.fourWheelerSpaces,
         isAdmin: true,
         token
       });

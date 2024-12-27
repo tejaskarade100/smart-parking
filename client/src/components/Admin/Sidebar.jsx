@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Home, MapPin, RefreshCw, ClipboardList, Settings } from 'lucide-react';
+import { Home, MapPin, RefreshCw, ClipboardList, Settings, User } from 'lucide-react';
 
 const menuItems = [
   { icon: Home, label: 'Dashboard' },
@@ -10,7 +10,7 @@ const menuItems = [
   { icon: Settings, label: 'Settings' },
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ onProfileClick }) => {
   return (
     <motion.aside 
       className="w-64 bg-blue-600 text-white p-6"

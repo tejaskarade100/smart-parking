@@ -11,8 +11,15 @@ import ParkingAdminRegistrationForm from './pages/ParkingAdminRegistrationForm';
 import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [showProfile, setShowProfile] = React.useState(false);
+
+  const ProtectedAdminRoute = ({ children }) => {
+    if (!user || !isAdmin) {
+      return <Navigate to="/" />;
+    }
+    return children;
+  };
 
   return (
     <Router>
@@ -20,7 +27,7 @@ function App() {
         <Header onProfileClick={() => setShowProfile(true)} />
         <main>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={isAdmin ? <Navigate to="/admin/dashboard" /> : <Home />} />
             <Route 
               path="/dashboard" 
               element={user ? <Dashboard /> : <Navigate to="/" />} 
@@ -31,7 +38,14 @@ function App() {
             />
             <Route path="/parking-categories" element={<ParkingCategoriesPage />} />
             <Route path="/admin-registration" element={<ParkingAdminRegistrationForm />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route 
+              path="/admin/dashboard" 
+              element={
+                <ProtectedAdminRoute>
+                  <AdminDashboard />
+                </ProtectedAdminRoute>
+              } 
+            />
           </Routes>
         </main>
 
