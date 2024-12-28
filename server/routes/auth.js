@@ -27,9 +27,12 @@ router.post('/register', async (req, res) => {
       password: hashedPassword
     });
 
-    // Create token
+    // Create token with role
     const token = jwt.sign(
-      { userId: user._id },
+      { 
+        userId: user._id,
+        role: 'user'
+      },
       process.env.JWT_SECRET,
       { expiresIn: '30d' }
     );
@@ -38,6 +41,7 @@ router.post('/register', async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      role: 'user',
       token
     });
   } catch (error) {
@@ -63,8 +67,12 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ message: 'Invalid admin credentials' });
       }
 
+      // Create token with admin role
       const token = jwt.sign(
-        { adminId: admin._id },
+        { 
+          userId: admin._id,
+          role: 'admin'
+        },
         process.env.JWT_SECRET,
         { expiresIn: '30d' }
       );
@@ -86,6 +94,7 @@ router.post('/login', async (req, res) => {
         twoWheelerSpaces: admin.twoWheelerSpaces,
         fourWheelerSpaces: admin.fourWheelerSpaces,
         isAdmin: true,
+        role: 'admin',
         token
       });
     } else {
@@ -100,8 +109,12 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ message: 'Invalid credentials' });
       }
 
+      // Create token with user role
       const token = jwt.sign(
-        { userId: user._id },
+        { 
+          userId: user._id,
+          role: 'user'
+        },
         process.env.JWT_SECRET,
         { expiresIn: '30d' }
       );
@@ -110,7 +123,7 @@ router.post('/login', async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        isAdmin: false,
+        role: 'user',
         token
       });
     }

@@ -17,6 +17,7 @@ function SearchForm() {
   });
   const [startDateInput, setStartDateInput] = useState(format(new Date(), "MMM dd, yyyy HH:mm"));
   const [endDateInput, setEndDateInput] = useState(format(new Date().setHours(new Date().getHours() + 24), "MMM dd, yyyy HH:mm"));
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const handleSearch = () => {
@@ -30,6 +31,8 @@ function SearchForm() {
       };
       console.log('Search data:', searchData);
       navigate('/dashboard', { state: searchData });
+    } else {
+      setError('Please enter a location');
     }
   };
 
@@ -138,15 +141,31 @@ function SearchForm() {
 
       <motion.div className="space-y-3" variants={itemVariants}>
         <motion.div className="relative" variants={itemVariants}>
-          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Where are you going?"
-            className="w-full px-10 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-          />
+          <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="location">
+            Location
+          </label>
+          {error && (
+            <div className="text-red-500 text-sm mb-1 font-medium">
+              {error}
+            </div>
+          )}
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              type="text"
+              id="location"
+              className={`w-full px-10 py-2 pl-10 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border ${error ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              placeholder="Where are you going?"
+              value={location}
+              onChange={(e) => {
+                setLocation(e.target.value);
+                if (error && e.target.value.trim()) {
+                  setError(null);
+                }
+              }}
+              onKeyDown={handleKeyPress}
+            />
+          </div>
         </motion.div>
         
         <motion.div className="relative" variants={itemVariants}>

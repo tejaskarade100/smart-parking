@@ -48,7 +48,12 @@ const ParkingLocationCard = ({ location, onSelect, isSelected, onBookNow }) => {
       }`}
     >
       <div className="flex justify-between items-start mb-2">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{location.name}</h3>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{location.name}</h3>
+          {location.adminUsername && (
+            <p className="text-sm text-gray-600 dark:text-gray-400">Owner: @{location.adminUsername}</p>
+          )}
+        </div>
         <motion.div 
           className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full"
           whileHover={{ scale: 1.1 }}
@@ -90,4 +95,3 @@ const ParkingLocationCard = ({ location, onSelect, isSelected, onBookNow }) => {
 };
 
 export default ParkingLocationCard;
-

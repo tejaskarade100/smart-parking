@@ -60,7 +60,13 @@ const BookingConfirmation = () => {
                      40, // Default rate
           duration: response.data.duration || 0,
           total: parseFloat(response.data.total || 0),
-          location: response.data.location || {}
+          location: {
+            ...response.data.location,
+            name: response.data.location?.name || 'N/A',
+            address: response.data.location?.address || 'N/A',
+            adminUsername: response.data.admin?.username || response.data.location?.adminUsername || 'N/A',
+            spotRate: response.data.location?.spotRate || response.data.hourlyRate || 40
+          }
         };
         
         console.log('Processed booking data:', bookingData);
@@ -183,9 +189,18 @@ const BookingConfirmation = () => {
           <div className="space-y-4 mb-6">
             <div>
               <h3 className="font-semibold text-gray-800">Location</h3>
-              <p className="text-gray-600">{booking.location.name}</p>
+              <p className="text-gray-600">
+                <span className="font-medium">Parking Name:</span> {booking.location.name}
+              </p>
               {booking.location.address && (
-                <p className="text-sm text-gray-500">{booking.location.address}</p>
+                <p className="text-gray-600">
+                  <span className="font-medium">Parking Address:</span> {booking.location.address}
+                </p>
+              )}
+              {booking.location.adminUsername && booking.location.adminUsername !== 'N/A' && (
+                <p className="text-sm text-gray-500">
+                  <span className="font-medium">Owner:</span> @{booking.location.adminUsername}
+                </p>
               )}
             </div>
 

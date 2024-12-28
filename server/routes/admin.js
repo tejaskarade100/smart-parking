@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 
 const Admin = require('../models/Admin');
-const Booking = require('../models/Booking'); // Add this line
+const Booking = require('../models/Booking'); 
+const Stats = require('../models/Stats');
+const protect = require('../middleware/auth');
 
 const bcrypt = require('bcrypt');
 
@@ -69,177 +71,50 @@ router.post('/check-username', async (req, res) => {
 // Admin Registration
 
 router.post('/register', async (req, res) => {
-
   try {
+    const {
+      username,
+      password,
+      fullName,
+      parkingName,
+      parkingAddress,
+      city,
+      state,
+      parkingType,
+      category,
+      twoWheelerSpaces,
+      fourWheelerSpaces,
+      hourlyRate,
+      facilities
+    } = req.body;
 
-    console.log('Received registration request:', req.body);
-
-
-
-    // Convert string numbers to actual numbers
-
-    const formData = {
-
-      ...req.body,
-
-      totalSpaces: Number(req.body.totalSpaces),
-
-      twoWheelerSpaces: Number(req.body.twoWheelerSpaces),
-
-      fourWheelerSpaces: Number(req.body.fourWheelerSpaces),
-
-      hourlyRate: Number(req.body.hourlyRate)
-
-    };
-
-
-
-    // Validate email format
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(formData.email)) {
-
-      return res.status(400).json({
-
-        success: false,
-
-        message: 'Please enter a valid email address'
-
-      });
-
+    // Check if admin already exists
+    const existingAdmin = await Admin.findOne({ username });
+    if (existingAdmin) {
+      return res.status(400).json({ message: 'Admin already exists' });
     }
 
-    // Check if email already exists
+    // Create new admin
+    const admin = await Admin.create(req.body);
 
-    const existingEmail = await Admin.findOne({ email: formData.email.toLowerCase() });
-
-    if (existingEmail) {
-
-      return res.status(400).json({
-
-        success: false,
-
-        message: 'Email already registered'
-
-      });
-
-    }
-
-    // Check if username already exists
-
-    const existingUsername = await Admin.findOne({ username: formData.username });
-
-    if (existingUsername) {
-
-      return res.status(400).json({
-
-        success: false,
-
-        message: 'Username already taken'
-
-      });
-
-    }
-
-    // Create new admin with all fields
-
-    const admin = new Admin({
-
-      // Personal Information
-
-      fullName: formData.fullName,
-
-      phone: formData.phone,
-
-      address: formData.address,
-
-      city: formData.city,
-
-      state: formData.state,
-
-      zipCode: formData.zipCode,
-
-
-
-      // Credentials
-
-      email: formData.email.toLowerCase(),
-
-      username: formData.username,
-
-      password: formData.password,
-
-
-
-      // Parking Details
-
-      parkingName: formData.parkingName,
-
-      parkingType: formData.parkingType,
-
-      category: formData.category,
-
-      parkingAddress: formData.parkingAddress,
-
-      totalSpaces: formData.totalSpaces,
-
-      twoWheelerSpaces: formData.twoWheelerSpaces,
-
-      fourWheelerSpaces: formData.fourWheelerSpaces,
-
-      hourlyRate: formData.hourlyRate,
-
-
-
-      // Security and Access
-
-      securityMeasures: formData.securityMeasures,
-
-      accessHours: formData.accessHours,
-
-      emergencyContact: formData.emergencyContact,
-
-
-
-      // Verification Details
-
-      idType: formData.idType,
-
-      idNumber: formData.idNumber,
-
-      businessType: formData.businessType,
-
-      verificationConsent: formData.verificationConsent,
-
-      termsAccepted: formData.termsAccepted
-
-    });
-
-    await admin.save();
-
-
-    // Generate JWT token
-
-    const token = jwt.sign(
-      { id: admin._id, role: 'admin' },
-      process.env.JWT_SECRET || 'your-fallback-secret',
-      { expiresIn: '24h' }
+    // Initialize stats for the new admin
+    await Stats.initializeStats(
+      username,
+      parseInt(twoWheelerSpaces) || 0,
+      parseInt(fourWheelerSpaces) || 0
     );
 
     res.status(201).json({
-      success: true,
-      message: 'Registration successful',
-      token,
-      adminId: admin._id
+      message: 'Admin registered successfully',
+      admin: {
+        id: admin._id,
+        username: admin.username,
+        fullName: admin.fullName
+      }
     });
-
   } catch (error) {
-    console.error('Admin registration error:', error);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Registration failed. Please try again.'
-    });
+    console.error('Registration error:', error);
+    res.status(500).json({ message: 'Failed to register admin' });
   }
 });
 
@@ -263,7 +138,8 @@ router.get('/parking-spots', async (req, res) => {
         hourlyRate: 1,
         facilities: 1,
         latitude: 1,
-        longitude: 1
+        longitude: 1,
+        username: 1
       }
     );
 
@@ -300,37 +176,74 @@ router.get('/profile/:id', async (req, res) => {
   }
 });
 
-// Get admin stats
-router.get('/stats/:adminId', async (req, res) => {
+// Get admin stats by username/email
+router.get('/stats/:username', protect, async (req, res) => {
   try {
-    const adminId = req.params.adminId;
+    const username = decodeURIComponent(req.params.username).trim();
+    console.log('Fetching stats for username/email:', username);
 
-    // Get all bookings for this admin
-    const bookings = await Booking.find({ admin: adminId });
-
-    // Get active bookings (current time is between start and end time)
-    const activeBookings = bookings.filter(booking => {
-      const now = new Date();
-      return now >= booking.startTime && now <= booking.endTime;
+    // Find admin by username or email
+    const admin = await Admin.findOne({
+      $or: [
+        { username: username },
+        { email: username }
+      ]
     });
 
-    // Get completed bookings
-    const completedBookings = bookings.filter(booking => {
-      const now = new Date();
-      return now > booking.endTime;
+    if (!admin) {
+      console.log('Admin not found for:', username);
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+
+    console.log('Found admin:', admin.email);
+
+    // Get stats by admin username/email
+    const stats = await Stats.findOne({
+      $or: [
+        { adminUsername: admin.username },
+        { adminUsername: admin.email }
+      ]
     });
 
-    // Calculate total revenue from completed bookings
-    const revenue = completedBookings.reduce((total, booking) => total + booking.total, 0);
+    console.log('Found stats:', stats);
 
-    res.json({
-      activeBookings,
-      completedBookings,
-      revenue
-    });
+    if (!stats) {
+      // Return default stats if none exist
+      const defaultStats = {
+        totalSpaces: {
+          twoWheeler: admin.twoWheelerSpaces || 0,
+          fourWheeler: admin.fourWheelerSpaces || 0
+        },
+        availableSpaces: {
+          twoWheeler: admin.twoWheelerSpaces || 0,
+          fourWheeler: admin.fourWheelerSpaces || 0
+        },
+        revenue: 0,
+        activeBookings: []
+      };
+      console.log('Returning default stats:', defaultStats);
+      return res.json(defaultStats);
+    }
+
+    // Return actual stats
+    const responseStats = {
+      totalSpaces: {
+        twoWheeler: admin.twoWheelerSpaces || 0,
+        fourWheeler: admin.fourWheelerSpaces || 0
+      },
+      availableSpaces: stats.availableSpaces || {
+        twoWheeler: admin.twoWheelerSpaces || 0,
+        fourWheeler: admin.fourWheelerSpaces || 0
+      },
+      revenue: stats.revenue || 0,
+      activeBookings: stats.activeBookings || []
+    };
+
+    console.log('Returning stats:', responseStats);
+    res.json(responseStats);
   } catch (error) {
     console.error('Error fetching admin stats:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ message: 'Failed to fetch stats' });
   }
 });
 

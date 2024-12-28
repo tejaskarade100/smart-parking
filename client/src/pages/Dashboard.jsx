@@ -25,6 +25,7 @@ const fetchParkingSpots = async (location = 'Pune') => {
       return adminSpots.map(spot => ({
         name: spot.parkingName,
         adminId: spot._id,
+        adminUsername: spot.username, // Changed from adminName to adminUsername
         lat: spot.latitude || parseFloat(lat), // Use admin's lat or center location
         lng: spot.longitude || parseFloat(lon), // Use admin's lng or center location
         spotRate: spot.hourlyRate,
@@ -53,6 +54,7 @@ const Dashboard = () => {
   const [showBookNow, setShowBookNow] = useState(false);
   const [bookingLocation, setBookingLocation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [locationError, setLocationError] = useState('');
   const [searchDateTime, setSearchDateTime] = useState({
     startDateTime: null,
     endDateTime: null
@@ -82,6 +84,7 @@ const Dashboard = () => {
 
   const handleLocationSelect = (location) => {
     setSelectedLocation(location);
+    setLocationError(''); // Clear any previous error
   };
 
   const handleBookNow = (location) => {
@@ -92,10 +95,24 @@ const Dashboard = () => {
     setShowBookNow(true);
   };
 
-  const handleSearchSubmit = (dateTime) => {
+  const handleSearchSubmit = async (formData) => {
+    if (!formData.location?.trim()) {
+      setLocationError('Please enter a location to search');
+      return;
+    }
+    setLocationError(''); // Clear error if location is provided
+    setIsLoading(true);
+    
+    const spots = await fetchParkingSpots(formData.location);
+    setParkingSpots(spots);
+    if (spots.length > 0) {
+      setSelectedLocation(spots[0]);
+    }
+    setIsLoading(false);
+    
     setSearchDateTime({
-      startDateTime: dateTime.startDateTime,
-      endDateTime: dateTime.endDateTime
+      startDateTime: formData.startDateTime,
+      endDateTime: formData.endDateTime
     });
   };
 
@@ -152,6 +169,10 @@ const Dashboard = () => {
           bookingDateTime={searchDateTime}
         />
       )}
+      <SearchForm 
+        onSubmit={handleSearchSubmit}
+        error={locationError}
+      />
     </div>
   );
 };

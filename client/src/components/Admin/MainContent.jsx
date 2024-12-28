@@ -9,52 +9,47 @@ import api from '../../api/axios';
 const MainContent = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({
-    totalSpaces: parseInt(user?.totalSpaces) || 0,
-    availableSpaces: 0,
+    totalSpaces: {
+      twoWheeler: parseInt(user?.twoWheelerSpaces) || 0,
+      fourWheeler: parseInt(user?.fourWheelerSpaces) || 0
+    },
+    availableSpaces: {
+      twoWheeler: parseInt(user?.twoWheelerSpaces) || 0,
+      fourWheeler: parseInt(user?.fourWheelerSpaces) || 0
+    },
     revenue: 0,
-    pendingBookings: 0,
-    twoWheelerAvailable: 0,
-    fourWheelerAvailable: 0,
-    twoWheelerTotal: parseInt(user?.twoWheelerSpaces) || 0,
-    fourWheelerTotal: parseInt(user?.fourWheelerSpaces) || 0
+    activeBookings: []
   });
-
-  useEffect(() => {
-    // Update total spaces when user data changes
-    setStats(prev => ({
-      ...prev,
-      totalSpaces: parseInt(user?.totalSpaces) || 0,
-      twoWheelerTotal: parseInt(user?.twoWheelerSpaces) || 0,
-      fourWheelerTotal: parseInt(user?.fourWheelerSpaces) || 0
-    }));
-  }, [user]);
 
   const fetchStats = async () => {
     try {
-      if (!user?._id) {
-        console.log('No user ID available');
+      if (!user?.email) {
+        console.log('No user email available');
         return;
       }
 
-      // Get bookings stats
-      const statsResponse = await api.get(`/api/admin/stats/${user._id}`);
-      const { activeBookings, completedBookings, revenue } = statsResponse.data;
+      console.log('Fetching stats for user:', user.email);
+      // Remove /api prefix since it's already in baseURL
+      const response = await api.get(`/admin/stats/${encodeURIComponent(user.email)}`);
+      const statsData = response.data;
+      console.log('Received stats:', statsData);
 
-      // Calculate available spaces
-      const twoWheelerBooked = activeBookings.filter(b => b.vehicleType === 'two-wheeler').length;
-      const fourWheelerBooked = activeBookings.filter(b => b.vehicleType === 'four-wheeler').length;
-      const twoWheelerAvailable = Math.max(0, stats.twoWheelerTotal - twoWheelerBooked);
-      const fourWheelerAvailable = Math.max(0, stats.fourWheelerTotal - fourWheelerBooked);
-      const availableSpaces = twoWheelerAvailable + fourWheelerAvailable;
+      // Ensure all required fields are present
+      const validatedStats = {
+        totalSpaces: {
+          twoWheeler: parseInt(statsData.totalSpaces?.twoWheeler) || 0,
+          fourWheeler: parseInt(statsData.totalSpaces?.fourWheeler) || 0
+        },
+        availableSpaces: {
+          twoWheeler: parseInt(statsData.availableSpaces?.twoWheeler) || 0,
+          fourWheeler: parseInt(statsData.availableSpaces?.fourWheeler) || 0
+        },
+        revenue: parseFloat(statsData.revenue) || 0,
+        activeBookings: Array.isArray(statsData.activeBookings) ? statsData.activeBookings : []
+      };
 
-      setStats(prev => ({
-        ...prev,
-        availableSpaces,
-        revenue,
-        pendingBookings: activeBookings.length,
-        twoWheelerAvailable,
-        fourWheelerAvailable
-      }));
+      console.log('Setting stats:', validatedStats);
+      setStats(validatedStats);
     } catch (error) {
       console.error('Error fetching stats:', error.response?.data || error.message);
     }
@@ -66,7 +61,7 @@ const MainContent = () => {
     const interval = setInterval(fetchStats, 5000); // Update every 5 seconds
 
     return () => clearInterval(interval);
-  }, [user?._id]);
+  }, [user?.email]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -77,6 +72,10 @@ const MainContent = () => {
       }
     }
   };
+
+  // Calculate total spaces
+  const totalSpaces = stats.totalSpaces.twoWheeler + stats.totalSpaces.fourWheeler;
+  const availableSpaces = stats.availableSpaces.twoWheeler + stats.availableSpaces.fourWheeler;
 
   return (
     <div className="p-8 h-full overflow-y-auto">
@@ -97,33 +96,33 @@ const MainContent = () => {
       >
         <StatCard 
           title="Total Parking Spaces" 
-          value={stats.totalSpaces.toString()} 
+          value={totalSpaces.toString()} 
           icon={<Car className="w-8 h-8 text-blue-500" />}
           details={[
-            { label: 'Two-wheelers', value: stats.twoWheelerTotal.toString() },
-            { label: 'Four-wheelers', value: stats.fourWheelerTotal.toString() }
+            { label: 'Two-wheelers', value: stats.totalSpaces.twoWheeler.toString() },
+            { label: 'Four-wheelers', value: stats.totalSpaces.fourWheeler.toString() }
           ]}
         />
         <StatCard 
           title="Available Slots" 
-          value={stats.availableSpaces.toString()} 
+          value={availableSpaces.toString()} 
           icon={<Bike className="w-8 h-8 text-green-500" />}
           details={[
-            { label: 'Two-wheelers', value: stats.twoWheelerAvailable.toString() },
-            { label: 'Four-wheelers', value: stats.fourWheelerAvailable.toString() }
+            { label: 'Two-wheelers', value: stats.availableSpaces.twoWheeler.toString() },
+            { label: 'Four-wheelers', value: stats.availableSpaces.fourWheeler.toString() }
           ]}
         />
         <StatCard 
           title="Revenue" 
-          value={`₹${stats.revenue}`}
+          value={`₹${stats.revenue.toFixed(2)}`}
           icon={<IndianRupee className="w-8 h-8 text-yellow-500" />}
-          details={[{ label: "Total earnings", value: `₹${stats.revenue}` }]}
+          details={[{ label: "Total earnings", value: `₹${stats.revenue.toFixed(2)}` }]}
         />
         <StatCard 
           title="Active Bookings" 
-          value={stats.pendingBookings.toString()} 
+          value={stats.activeBookings.length.toString()} 
           icon={<Clock className="w-8 h-8 text-red-500" />}
-          details={[{ label: 'Currently parked', value: stats.pendingBookings.toString() }]}
+          details={[{ label: 'Currently parked', value: stats.activeBookings.length.toString() }]}
         />
       </motion.div>
 
@@ -133,7 +132,12 @@ const MainContent = () => {
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         <h2 className="text-2xl font-semibold mb-4">Real-time Parking Status</h2>
-        <ParkingStatusVisualization />
+        <ParkingStatusVisualization 
+          twoWheelerTotal={stats.totalSpaces.twoWheeler}
+          fourWheelerTotal={stats.totalSpaces.fourWheeler}
+          twoWheelerAvailable={stats.availableSpaces.twoWheeler}
+          fourWheelerAvailable={stats.availableSpaces.fourWheeler}
+        />
       </motion.div>
     </div>
   );

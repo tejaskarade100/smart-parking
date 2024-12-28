@@ -3,6 +3,8 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const Vehicle = require('../models/Vehicle');
 const Booking = require('../models/Booking');
+const Stats = require('../models/Stats');
+const Admin = require('../models/Admin'); // Added Admin model
 const protect = require('../middleware/auth');
 
 // Middleware to protect routes
@@ -111,89 +113,84 @@ router.post('/bookings', protect, async (req, res) => {
     console.log('User:', req.user);
     console.log('Request body:', req.body);
 
-    const { vehicleId, location, phone, total, duration, startDateTime, endDateTime, adminId, userName, userEmail } = req.body;
+    const { vehicleId, location, phone, total, duration, startDateTime, endDateTime, adminId } = req.body;
 
-    // Log validation data
-    console.log('Validation Data:', {
-      hasVehicleId: Boolean(vehicleId),
-      hasLocation: Boolean(location),
-      locationName: location?.name,
-      hasTotal: Boolean(total),
-      totalValue: total,
-      hasDuration: Boolean(duration),
-      durationValue: duration
+    // Get admin username from location data
+    const adminUsername = location.adminUsername?.replace(/^@/, '').trim();
+    if (!adminUsername) {
+      throw new Error('Admin username is required');
+    }
+
+    console.log('Looking up admin with username/email:', adminUsername);
+
+    // Find admin to confirm they exist
+    const admin = await Admin.findOne({
+      $or: [
+        { username: adminUsername },
+        { email: adminUsername }
+      ]
     });
 
-    // Validate input
-    if (!vehicleId) {
-      return res.status(400).json({ message: 'Vehicle ID is required' });
+    if (!admin) {
+      throw new Error(`Admin not found with username/email: ${adminUsername}`);
     }
-    if (!location?.name) {
-      return res.status(400).json({ message: 'Location name is required' });
-    }
-    if (!total || isNaN(Number(total))) {
-      return res.status(400).json({ message: 'Valid total amount is required' });
-    }
-    if (!duration || isNaN(Number(duration))) {
-      return res.status(400).json({ message: 'Valid duration is required' });
-    }
-
-    // Verify vehicle exists and belongs to user
-    console.log('Verifying vehicle:', vehicleId);
-    const vehicle = await Vehicle.findOne({
-      _id: vehicleId,
-      user: req.user.id
-    }).lean();
-
-    console.log('Found vehicle:', vehicle);
-
-    if (!vehicle) {
-      return res.status(404).json({ message: 'Vehicle not found or does not belong to user' });
-    }
-
-    // Determine vehicle type based on vehicle model or category
-    const vehicleType = vehicle.category || 'four-wheeler'; // Default to four-wheeler if not specified
 
     // Create booking object
     const bookingData = {
       user: req.user.id,
       vehicle: vehicleId,
-      admin: req.body.adminId,
-      vehicleType: vehicleType,
+      admin: admin._id, // Use found admin's ID
+      vehicleType: req.body.vehicleType || 'four-wheeler', // Default to four-wheeler if not specified
       location: {
         name: location.name,
         address: location.address || '',
+        adminUsername: admin.username || admin.email, // Use found admin's username/email
         coordinates: {
-          lat: location.lat || null,
-          lng: location.lng || null
-        }
+          lat: location.coordinates?.lat || null,
+          lng: location.coordinates?.lng || null
+        },
+        spotRate: location.spotRate
       },
       date: new Date(),
-      startTime: new Date(req.body.startDateTime),
-      endTime: new Date(req.body.endDateTime),
-      duration: Number(duration),
-      total: Number(total),
+      startTime: new Date(startDateTime),
+      endTime: new Date(endDateTime),
+      duration: duration,
+      total: total,
       phone: phone?.trim() || '',
       status: 'Active',
-      paymentStatus: 'Paid',
-      userName: req.body.userName,
-      userEmail: req.body.userEmail,
-      parkingName: location.name,
-      parkingAddress: location.address || '',
-      parkingType: location.parkingType || 'Standard',
-      spotNumber: 'A-' + Math.floor(Math.random() * 100 + 1)
+      paymentStatus: 'Paid'
     };
-
-    console.log('Creating booking with data:', bookingData);
 
     // Create booking
     const booking = await Booking.create(bookingData);
     console.log('Booking created:', booking);
 
+    // Update admin stats using found admin's username/email
+    await Stats.updateOnBooking(admin.username || admin.email, {
+      bookingId: booking._id,
+      vehicleId: booking.vehicle,
+      userId: booking.user,
+      vehicleType: bookingData.vehicleType,
+      amount: bookingData.total,
+      startTime: bookingData.startTime,
+      endTime: bookingData.endTime,
+      duration: bookingData.duration,
+      phone: bookingData.phone,
+      location: {
+        name: location.name,
+        address: location.address || '',
+        coordinates: {
+          lat: location.coordinates?.lat || null,
+          lng: location.coordinates?.lng || null
+        },
+        spotRate: location.spotRate
+      }
+    });
+
     // Populate booking details
     const populatedBooking = await Booking.findById(booking._id)
       .populate('vehicle', 'makeModel licensePlate')
-      .populate('user', 'email')
+      .populate('admin', 'username email')
       .lean();
 
     console.log('Populated booking:', populatedBooking);
@@ -201,47 +198,15 @@ router.post('/bookings', protect, async (req, res) => {
     res.status(201).json(populatedBooking);
   } catch (error) {
     console.error('=== Booking Creation Error ===');
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      code: error.code
-    });
-
-    if (error.code === 11000) {
-      // Retry once with a new booking reference
-      try {
-        console.log('Retrying booking creation with new reference...');
-        const booking = await Booking.create({
-          ...req.body,
-          user: req.user.id,
-          bookingReference: `BK${Date.now()}${Math.floor(Math.random() * 10000)}`
-        });
-        
-        const populatedBooking = await Booking.findById(booking._id)
-          .populate('vehicle', 'makeModel licensePlate')
-          .populate('user', 'email')
-          .lean();
-
-        return res.status(201).json(populatedBooking);
-      } catch (retryError) {
-        console.error('Retry failed:', retryError);
-        return res.status(500).json({ message: 'Failed to create booking' });
-      }
-    }
-
+    console.error('Error details:', error);
     if (error.name === 'ValidationError') {
-      const messages = Object.values(error.errors).map(err => err.message);
-      console.log('Validation error messages:', messages);
-      return res.status(400).json({ message: messages.join(', ') });
+      return res.status(400).json({ message: error.message });
     }
-
     if (error.name === 'CastError') {
       console.log('Cast error details:', error);
       return res.status(400).json({ message: 'Invalid data format' });
     }
-
-    res.status(500).json({ message: 'Failed to create booking' });
+    res.status(500).json({ message: error.message || 'Failed to create booking' });
   }
 });
 
@@ -262,13 +227,18 @@ router.get('/bookings', protect, async (req, res) => {
 // Get a specific booking
 router.get('/bookings/:id', protect, async (req, res) => {
   try {
-    const booking = await Booking.findOne({
-      _id: req.params.id,
-      user: req.user.id
-    }).populate('vehicle', 'makeModel licensePlate');
+    const booking = await Booking.findById(req.params.id)
+      .populate('vehicle', 'makeModel licensePlate')
+      .populate('admin', 'username email')
+      .lean();
 
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    // If admin username is not in location, add it from populated admin
+    if (booking.admin && booking.admin.username && !booking.location.adminUsername) {
+      booking.location.adminUsername = booking.admin.username;
     }
 
     res.json(booking);

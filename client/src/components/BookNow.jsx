@@ -89,9 +89,10 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
         location: {
           name: location.name,
           address: location.address || '',
+          adminUsername: location.adminUsername || '', // Changed from adminName
           coordinates: {
-            lat: location.lat || null,
-            lng: location.lng || null
+            lat: location.coordinates?.lat || null,
+            lng: location.coordinates?.lng || null
           },
           spotRate: location.spotRate
         },
@@ -154,7 +155,18 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
         <h2 className="text-2xl font-bold mb-6">Book Parking Space</h2>
 
         <div className="grid grid-cols-2 gap-8">
+          {/* Left Column */}
           <div className="space-y-6">
+            {/* Parking Details */}
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Parking Details</h3>
+              <p className="text-gray-600">{location.name}</p>
+              <p className="text-gray-600">{location.address}</p>
+              {location.adminUsername && (
+                <p className="text-sm text-gray-500">Owner: @{location.adminUsername}</p>
+              )}
+            </div>
+
             {/* Account Info */}
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">Account Information</h3>
