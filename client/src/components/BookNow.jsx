@@ -10,6 +10,7 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
   const navigate = useNavigate();
   const [vehicles, setVehicles] = useState([]);
   const [selectedVehicle, setSelectedVehicle] = useState('');
+  const [vehicleType, setVehicleType] = useState('four-wheeler');
   const [phone, setPhone] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -67,6 +68,40 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
     }
   };
 
+  const handleVehicleChange = async (e) => {
+    const vehicleId = e.target.value;
+    setSelectedVehicle(vehicleId);
+    
+    if (vehicleId) {
+      const vehicle = vehicles.find(v => v._id === vehicleId);
+      if (vehicle) {
+        setVehicleType(vehicle.type || 'four-wheeler');
+      }
+    }
+  };
+
+  const handleVehicleTypeChange = async (e) => {
+    const newType = e.target.value;
+    setVehicleType(newType);
+    
+    // Update vehicle type in database if a vehicle is selected
+    if (selectedVehicle) {
+      try {
+        await api.patch(`/user/vehicles/${selectedVehicle}`, {
+          type: newType
+        });
+        // Update vehicles array with new type
+        setVehicles(vehicles.map(vehicle => 
+          vehicle._id === selectedVehicle 
+            ? { ...vehicle, type: newType }
+            : vehicle
+        ));
+      } catch (error) {
+        console.error('Error updating vehicle type:', error);
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -82,14 +117,21 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
       const { total, baseRate } = calculateCosts();
       const duration = calculateDuration();
 
+      // Get the selected vehicle details
+      const selectedVehicleDetails = vehicles.find(v => v._id === selectedVehicle);
+
       // Prepare booking data
       const bookingData = {
         vehicleId: selectedVehicle,
-        adminId: location.adminId, // Add admin ID
+        vehicle: {
+          ...selectedVehicleDetails,
+          type: vehicleType
+        },
+        adminId: location.adminId,
         location: {
           name: location.name,
           address: location.address || '',
-          adminUsername: location.adminUsername || '', // Changed from adminName
+          adminUsername: location.adminUsername || '',
           coordinates: {
             lat: location.coordinates?.lat || null,
             lng: location.coordinates?.lng || null
@@ -103,8 +145,8 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
         endDateTime: new Date(bookingDateTime.endDateTime).toISOString(),
         hourlyRate: location.spotRate,
         rate: location.spotRate,
-        userName: user.name, // Add user name
-        userEmail: user.email // Add user email
+        userName: user.name,
+        userEmail: user.email
       };
 
       console.log('Submitting booking with data:', bookingData);
@@ -175,37 +217,54 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Vehicle Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Vehicle
-                </label>
-                {vehicles.length > 0 ? (
-                  <select
-                    value={selectedVehicle}
-                    onChange={(e) => setSelectedVehicle(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-md"
-                    required
-                  >
-                    <option value="">Choose a vehicle</option>
-                    {vehicles.map((vehicle) => (
-                      <option key={vehicle._id} value={vehicle._id}>
-                        {vehicle.makeModel} ({vehicle.licensePlate})
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <div className="text-center p-4 bg-gray-50 rounded-md">
-                    <Car className="mx-auto text-gray-400 mb-2" size={24} />
-                    <p className="text-sm text-gray-600">No vehicles found</p>
-                    <button
-                      type="button"
-                      onClick={() => {/* Navigate to profile vehicles tab */}}
-                      className="mt-2 text-blue-600 hover:text-blue-700 text-sm"
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Vehicle
+                  </label>
+                  {vehicles.length > 0 ? (
+                    <select
+                      value={selectedVehicle}
+                      onChange={handleVehicleChange}
+                      className="w-full px-3 py-2 border rounded-md"
+                      required
                     >
-                      Add a vehicle in your profile
-                    </button>
-                  </div>
-                )}
+                      <option value="">Choose a vehicle</option>
+                      {vehicles.map((vehicle) => (
+                        <option key={vehicle._id} value={vehicle._id}>
+                          {vehicle.makeModel} ({vehicle.licensePlate})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="text-center p-4 bg-gray-50 rounded-md">
+                      <Car className="mx-auto text-gray-400 mb-2" size={24} />
+                      <p className="text-sm text-gray-600">No vehicles found</p>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/vehicles')}
+                        className="mt-2 text-blue-600 hover:text-blue-700 text-sm"
+                      >
+                        Add a vehicle
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Vehicle Type Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Vehicle Type
+                  </label>
+                  <select
+                    value={vehicleType}
+                    onChange={handleVehicleTypeChange}
+                    className="w-full px-3 py-2 border rounded-md"
+                  >
+                    <option value="two-wheeler">Two Wheeler</option>
+                    <option value="four-wheeler">Four Wheeler</option>
+                  </select>
+                </div>
               </div>
 
               {/* Contact Information */}

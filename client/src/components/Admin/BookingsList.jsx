@@ -1,8 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, MapPin, Car, User, IndianRupee } from 'lucide-react';
-import axios from 'axios';
+import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
+
+// Utility function for date formatting
+const formatDateTime = (dateString) => {
+  if (!dateString) return 'N/A';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'N/A';
+    
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (error) {
+    return 'N/A';
+  }
+};
+
+// Calculate duration between two dates
+const calculateDuration = (startDateTime, endDateTime) => {
+  if (!startDateTime || !endDateTime) return 'N/A';
+  try {
+    const start = new Date(startDateTime);
+    const end = new Date(endDateTime);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 'N/A';
+    
+    const diffInHours = Math.abs(end - start) / 36e5; // Convert milliseconds to hours
+    return `${Math.round(diffInHours * 10) / 10} hours`;
+  } catch (error) {
+    return 'N/A';
+  }
+};
 
 const BookingsList = () => {
   const [bookings, setBookings] = useState([]);
@@ -12,7 +47,8 @@ const BookingsList = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const response = await axios.get(`/api/admin/bookings/${user._id}`);
+        const response = await api.get(`/admin/bookings/${user._id}`);
+        console.log('Fetched bookings:', response.data); // Debug log
         setBookings(response.data);
       } catch (error) {
         console.error('Error fetching bookings:', error);
@@ -21,13 +57,24 @@ const BookingsList = () => {
       }
     };
 
-    fetchBookings();
-  }, [user._id]);
+    if (user?._id) {
+      fetchBookings();
+    }
+  }, [user?._id]);
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-full">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!bookings.length) {
+    return (
+      <div className="p-6">
+        <h2 className="text-2xl font-bold mb-6">Parking Bookings</h2>
+        <div className="text-center text-gray-500">No bookings found</div>
       </div>
     );
   }
@@ -60,9 +107,22 @@ const BookingsList = () => {
               <div className="flex items-start space-x-3">
                 <Car className="w-5 h-5 text-gray-500 mt-1" />
                 <div>
-                  <p className="text-sm text-gray-600">Vehicle</p>
-                  <p className="font-medium">{booking.vehicleType}</p>
-                  <p className="text-sm text-gray-500">{booking.vehicleNumber}</p>
+                  <p className="text-sm text-gray-600">Vehicle Details</p>
+                  <div className="flex flex-col">
+                    <span>{booking.vehicleMakeModel !== 'N/A' ? (
+                      <span>{booking.vehicleMakeModel}</span>
+                    ) : (
+                      <span>Vehicle</span>
+                    )}</span>
+                    <span className="text-xs text-gray-400">{booking.vehicleNumber !== 'N/A' ? (
+                      <span className="uppercase">{booking.vehicleNumber}</span>
+                    ) : (
+                      <span>No plate number</span>
+                    )}</span>
+                    <span className="text-xs text-blue-500 font-medium mt-1">
+                      {booking.vehicleType === 'two-wheeler' ? 'Two Wheeler' : 'Four Wheeler'}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -72,8 +132,13 @@ const BookingsList = () => {
                 <div>
                   <p className="text-sm text-gray-600">Duration</p>
                   <p className="font-medium">
-                    {new Date(booking.startTime).toLocaleString()} -
-                    {new Date(booking.endTime).toLocaleString()}
+                    {formatDateTime(booking.startDateTime)}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    to {formatDateTime(booking.endDateTime)}
+                  </p>
+                  <p className="text-xs text-blue-500 mt-1">
+                    ({calculateDuration(booking.startDateTime, booking.endDateTime)})
                   </p>
                 </div>
               </div>
@@ -83,18 +148,18 @@ const BookingsList = () => {
                 <IndianRupee className="w-5 h-5 text-gray-500 mt-1" />
                 <div>
                   <p className="text-sm text-gray-600">Payment</p>
-                  <p className="font-medium">₹{booking.amount}</p>
-                  <p className="text-sm text-gray-500">{booking.paymentStatus}</p>
+                  <p className="font-medium">₹{booking.total}</p>
+                  <p className="text-sm text-green-500">Paid</p>
                 </div>
               </div>
 
-              {/* Spot Info */}
+              {/* Location Info */}
               <div className="flex items-start space-x-3">
                 <MapPin className="w-5 h-5 text-gray-500 mt-1" />
                 <div>
-                  <p className="text-sm text-gray-600">Spot Details</p>
-                  <p className="font-medium">{booking.spotNumber}</p>
-                  <p className="text-sm text-gray-500">{booking.parkingType}</p>
+                  <p className="text-sm text-gray-600">Location</p>
+                  <p className="font-medium">{booking.location?.name}</p>
+                  <p className="text-sm text-gray-500">{booking.location?.address}</p>
                 </div>
               </div>
 
@@ -103,24 +168,16 @@ const BookingsList = () => {
                 <Calendar className="w-5 h-5 text-gray-500 mt-1" />
                 <div>
                   <p className="text-sm text-gray-600">Status</p>
-                  <span className={`px-2 py-1 rounded-full text-sm ${
-                    booking.status === 'active' ? 'bg-green-100 text-green-800' :
-                    booking.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
+                  <p className={`font-medium ${
+                    new Date(booking.endDateTime) < new Date() ? 'text-red-500' : 'text-green-500'
                   }`}>
-                    {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                  </span>
+                    {new Date(booking.endDateTime) < new Date() ? 'Completed' : 'Active'}
+                  </p>
                 </div>
               </div>
             </div>
           </motion.div>
         ))}
-
-        {bookings.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No bookings found</p>
-          </div>
-        )}
       </div>
     </div>
   );

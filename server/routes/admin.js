@@ -247,8 +247,64 @@ router.get('/stats/:username', protect, async (req, res) => {
   }
 });
 
+// Get bookings for admin's parking area
+router.get('/bookings/:adminId', protect, async (req, res) => {
+  try {
+    const admin = await Admin.findById(req.params.adminId);
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+
+    const bookings = await Booking.find({ 
+      'location.adminUsername': admin.username 
+    })
+    .populate({
+      path: 'user',
+      select: 'name email'
+    })
+    .populate({
+      path: 'vehicle',
+      select: 'makeModel licensePlate type'
+    })
+    .sort({ createdAt: -1 });
+
+    // Process the bookings to ensure all required data is present
+    const processedBookings = bookings.map(booking => {
+      // Get vehicle details either from populated vehicle or from booking.vehicle
+      const vehicleDetails = booking.vehicle || booking.vehicleDetails || {};
+      
+      return {
+        ...booking.toObject(),
+        userName: booking.user?.name || booking.userName || 'N/A',
+        userEmail: booking.user?.email || booking.userEmail || 'N/A',
+        // Handle vehicle details with priority to populated vehicle
+        vehicleType: vehicleDetails.type || 'N/A',
+        vehicleNumber: vehicleDetails.licensePlate || 'N/A',
+        vehicleMakeModel: vehicleDetails.makeModel || 'N/A',
+        startDateTime: booking.startDateTime || booking.from || booking.date,
+        endDateTime: booking.endDateTime || booking.to || 
+          (booking.date && booking.duration ? 
+            new Date(new Date(booking.date).getTime() + (booking.duration * 60 * 60 * 1000)).toISOString() 
+            : null),
+        duration: booking.duration || 0,
+        total: parseFloat(booking.total || 0),
+        location: {
+          name: booking.location?.name || 'N/A',
+          address: booking.location?.address || 'N/A',
+          adminUsername: admin.username
+        }
+      };
+    });
+
+    res.json(processedBookings);
+  } catch (error) {
+    console.error('Error fetching bookings:', error);
+    res.status(500).json({ message: 'Error fetching bookings' });
+  }
+});
+
 // Get admin bookings
-router.get('/bookings/:adminId', async (req, res) => {
+router.get('/admin-bookings/:adminId', async (req, res) => {
   try {
     const { adminId } = req.params;
     const bookings = await Booking.find({ adminId })

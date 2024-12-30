@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaSearch, FaCalendarAlt, FaClock, FaCar } from 'react-icons/fa';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 
 const BookingForm = () => {
+  const { user } = useAuth();
   const [location, setLocation] = useState('');
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState('');
+  const [selectedVehicle, setSelectedVehicle] = useState('');
+  const [vehicles, setVehicles] = useState([]);
   const [vehicleType, setVehicleType] = useState('');
   const [priceRange, setPriceRange] = useState([0, 100]);
   const [distance, setDistance] = useState(5);
@@ -16,10 +21,83 @@ const BookingForm = () => {
     valet: false,
   });
 
-  const handleSubmit = (e) => {
+  // Fetch user's vehicles
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        const response = await api.get(`/user/vehicles/${user._id}`);
+        setVehicles(response.data);
+        if (response.data.length > 0) {
+          const defaultVehicle = response.data[0];
+          setSelectedVehicle(defaultVehicle._id);
+          setVehicleType(defaultVehicle.type || 'four-wheeler');
+        }
+      } catch (error) {
+        console.error('Error fetching vehicles:', error);
+      }
+    };
+
+    if (user?._id) {
+      fetchVehicles();
+    }
+  }, [user?._id]);
+
+  const handleVehicleChange = (e) => {
+    const vehicleId = e.target.value;
+    setSelectedVehicle(vehicleId);
+    
+    if (vehicleId) {
+      const selectedVehicle = vehicles.find(v => v._id === vehicleId);
+      if (selectedVehicle) {
+        setVehicleType(selectedVehicle.type || 'four-wheeler');
+      }
+    } else {
+      setVehicleType('');
+    }
+  };
+
+  const handleVehicleTypeChange = async (e) => {
+    const newType = e.target.value;
+    setVehicleType(newType);
+    
+    // Update vehicle type in database immediately
+    if (selectedVehicle) {
+      try {
+        await api.patch(`/user/vehicles/${selectedVehicle}`, {
+          type: newType
+        });
+        // Update the vehicles array with the new type
+        setVehicles(vehicles.map(vehicle => 
+          vehicle._id === selectedVehicle 
+            ? { ...vehicle, type: newType }
+            : vehicle
+        ));
+      } catch (error) {
+        console.error('Error updating vehicle type:', error);
+      }
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission
-    console.log({ location, date, time, vehicleType, priceRange, distance, facilities });
+    const selectedVehicleDetails = vehicles.find(v => v._id === selectedVehicle);
+    
+    // Handle form submission with vehicle details
+    const bookingData = {
+      location,
+      date,
+      time,
+      vehicle: {
+        ...selectedVehicleDetails,
+        type: vehicleType
+      },
+      priceRange,
+      distance,
+      facilities
+    };
+    
+    console.log('Booking Data:', bookingData);
+    // Submit booking data
   };
 
   return (
@@ -40,6 +118,7 @@ const BookingForm = () => {
           <FaSearch className="absolute left-3 top-3 text-gray-400" />
         </div>
       </div>
+      
       <div className="mb-4 flex space-x-4">
         <div className="w-1/2">
           <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="date">
@@ -71,25 +150,51 @@ const BookingForm = () => {
           </div>
         </div>
       </div>
-      <div className="mb-4">
-        <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="vehicleType">
-          Vehicle Type
-        </label>
-        <div className="relative">
-          <select
-            id="vehicleType"
-            className="w-full px-2 py-1 pl-8 text-sm text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={vehicleType}
-            onChange={(e) => setVehicleType(e.target.value)}
-          >
-            <option value="">Select vehicle type</option>
-            <option value="car">Car</option>
-            <option value="bike">Bike</option>
-            <option value="truck">Truck</option>
-          </select>
-          <FaCar className="absolute left-3 top-3 text-gray-400" />
+
+      <div className="space-y-4">
+        {/* Vehicle Selection and Type */}
+        <div>
+          <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="vehicle">
+            Select Vehicle
+          </label>
+          <div className="relative">
+            <select
+              id="vehicle"
+              className="w-full px-2 py-1 pl-8 text-sm text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={selectedVehicle}
+              onChange={handleVehicleChange}
+            >
+              <option value="">Select a vehicle</option>
+              {vehicles.map(vehicle => (
+                <option key={vehicle._id} value={vehicle._id}>
+                  {vehicle.makeModel} - {vehicle.licensePlate}
+                </option>
+              ))}
+            </select>
+            <FaCar className="absolute left-3 top-3 text-gray-400" />
+          </div>
+        </div>
+
+        {/* Vehicle Type Selection - Always visible */}
+        <div>
+          <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="vehicleType">
+            Vehicle Type
+          </label>
+          <div className="relative">
+            <select
+              id="vehicleType"
+              className="w-full px-2 py-1 pl-8 text-sm text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={vehicleType}
+              onChange={handleVehicleTypeChange}
+            >
+              <option value="two-wheeler">Two Wheeler</option>
+              <option value="four-wheeler">Four Wheeler</option>
+            </select>
+            <FaCar className="absolute left-3 top-3 text-gray-400" />
+          </div>
         </div>
       </div>
+
       <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
           Price Range (₹{priceRange[0]} - ₹{priceRange[1]})
@@ -104,6 +209,7 @@ const BookingForm = () => {
           className="w-full"
         />
       </div>
+
       <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
           Distance ({distance} km)
@@ -118,6 +224,7 @@ const BookingForm = () => {
           className="w-full"
         />
       </div>
+
       <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
           Facilities
@@ -152,6 +259,7 @@ const BookingForm = () => {
           </label>
         </div>
       </div>
+
       <button
         type="submit"
         className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-4 text-sm rounded focus:outline-none focus:shadow-outline"
