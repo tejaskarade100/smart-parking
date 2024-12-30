@@ -29,10 +29,26 @@ const MainContent = () => {
       }
 
       console.log('Fetching stats for user:', user.email);
-      // Remove /api prefix since it's already in baseURL
       const response = await api.get(`/admin/stats/${encodeURIComponent(user.email)}`);
       const statsData = response.data;
       console.log('Received stats:', statsData);
+
+      // Get bookings to calculate active/completed counts
+      const bookingsResponse = await api.get(`/admin/bookings/${user._id}`);
+      const bookings = bookingsResponse.data;
+
+      // Process bookings to calculate status
+      const now = new Date();
+      const processedBookings = bookings.map(booking => {
+        const endDateTime = new Date(booking.endDateTime);
+        return {
+          ...booking,
+          status: endDateTime > now ? 'Active' : 'Completed'
+        };
+      });
+
+      // Filter active bookings
+      const activeBookings = processedBookings.filter(b => b.status === 'Active');
 
       // Ensure all required fields are present
       const validatedStats = {
@@ -45,7 +61,7 @@ const MainContent = () => {
           fourWheeler: parseInt(statsData.availableSpaces?.fourWheeler) || 0
         },
         revenue: parseFloat(statsData.revenue) || 0,
-        activeBookings: Array.isArray(statsData.activeBookings) ? statsData.activeBookings : []
+        activeBookings: activeBookings
       };
 
       console.log('Setting stats:', validatedStats);
@@ -58,7 +74,7 @@ const MainContent = () => {
   useEffect(() => {
     fetchStats();
     // Set up polling for real-time updates
-    const interval = setInterval(fetchStats, 5000); // Update every 5 seconds
+    const interval = setInterval(fetchStats, 10000); // Update every 10 seconds
 
     return () => clearInterval(interval);
   }, [user?.email]);

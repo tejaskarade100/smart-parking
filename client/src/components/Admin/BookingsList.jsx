@@ -48,8 +48,52 @@ const BookingsList = () => {
     const fetchBookings = async () => {
       try {
         const response = await api.get(`/admin/bookings/${user._id}`);
-        console.log('Fetched bookings:', response.data); // Debug log
-        setBookings(response.data);
+        console.log('Fetched raw bookings:', response.data);
+
+        const now = new Date();
+        console.log('Current time:', now.toISOString());
+
+        // Process bookings to calculate status
+        const processedBookings = response.data.map(booking => {
+          const endDateTime = new Date(booking.endDateTime);
+          // Normalize vehicle type
+          const vehicleType = booking.vehicleType?.toLowerCase().includes('four') ? 'four-wheeler' : 
+                            booking.vehicleType?.toLowerCase().includes('two') ? 'two-wheeler' : 
+                            booking.vehicleType;
+          
+          const status = endDateTime > now ? 'Active' : 'Completed';
+          console.log(`Booking ${booking._id}: EndTime=${endDateTime.toISOString()}, Status=${status}`);
+          
+          return { ...booking, vehicleType, status };
+        });
+
+        // Get active and completed bookings
+        const activeBookings = processedBookings.filter(b => b.status === 'Active');
+        const completedBookings = processedBookings.filter(b => b.status === 'Completed');
+
+        console.log('Active bookings count:', activeBookings.length);
+        console.log('Completed bookings count:', completedBookings.length);
+
+        // Update stats in MainContent
+        const updateStats = async () => {
+          try {
+            const activeTwoWheelerCount = activeBookings.filter(b => b.vehicleType === 'two-wheeler').length;
+            const activeFourWheelerCount = activeBookings.filter(b => b.vehicleType === 'four-wheeler').length;
+
+            await api.post(`/admin/updateStats/${user._id}`, {
+              activeBookings: activeBookings.length,
+              completedBookings: completedBookings.length,
+              activeTwoWheeler: activeTwoWheelerCount,
+              activeFourWheeler: activeFourWheelerCount,
+              revenue: processedBookings.reduce((total, booking) => total + (parseFloat(booking.total) || 0), 0)
+            });
+          } catch (error) {
+            console.error('Error updating stats:', error);
+          }
+        };
+
+        updateStats();
+        setBookings(processedBookings);
       } catch (error) {
         console.error('Error fetching bookings:', error);
       } finally {
@@ -59,6 +103,9 @@ const BookingsList = () => {
 
     if (user?._id) {
       fetchBookings();
+      // Update every 10 seconds
+      const interval = setInterval(fetchBookings, 10000);
+      return () => clearInterval(interval);
     }
   }, [user?._id]);
 
@@ -169,9 +216,9 @@ const BookingsList = () => {
                 <div>
                   <p className="text-sm text-gray-600">Status</p>
                   <p className={`font-medium ${
-                    new Date(booking.endDateTime) < new Date() ? 'text-red-500' : 'text-green-500'
+                    booking.status === 'Completed' ? 'text-red-500' : 'text-green-500'
                   }`}>
-                    {new Date(booking.endDateTime) < new Date() ? 'Completed' : 'Active'}
+                    {booking.status}
                   </p>
                 </div>
               </div>

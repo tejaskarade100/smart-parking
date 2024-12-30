@@ -50,7 +50,33 @@ const Profile = ({ onClose }) => {
       setIsLoading(true);
       const response = await api.get('/user/bookings');
       console.log('Fetched bookings:', response.data);
-      setBookings(response.data);
+      
+      // Process bookings to add status based on end time
+      const processedBookings = response.data.map(booking => {
+        // Get the end time from either endDateTime or calculate from date and duration
+        let endTime;
+        if (booking.endDateTime) {
+          endTime = new Date(booking.endDateTime);
+        } else if (booking.date && booking.duration) {
+          // If we have date and duration, calculate end time
+          endTime = new Date(booking.date);
+          endTime.setHours(endTime.getHours() + booking.duration);
+        } else {
+          // If no end time info, default to active
+          return { ...booking, status: 'Active' };
+        }
+
+        const now = new Date();
+        console.log('Booking end time:', endTime);
+        console.log('Current time:', now);
+        const status = endTime < now ? 'Completed' : 'Active';
+        console.log('Calculated status:', status);
+        
+        return { ...booking, status };
+      });
+      
+      console.log('Processed bookings:', processedBookings);
+      setBookings(processedBookings);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       setError('Failed to fetch bookings');
