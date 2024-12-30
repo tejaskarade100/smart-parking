@@ -87,20 +87,25 @@ const ParkingAdminRegistrationForm = () => {
 
       const response = await axios.post('http://localhost:5000/api/admin/register', formData);
       
-      if (response.data.success) {
+      if (response.data && response.data.success) {
+        // Store token and admin ID
         localStorage.setItem('adminToken', response.data.token);
         localStorage.setItem('adminId', response.data.adminId);
+        
+        // Show success message and clear any errors
         setShowSuccessPopup(true);
         setError("");
       } else {
-        setError(response.data.message || 'Registration failed');
+        throw new Error(response.data.message || 'Registration failed');
       }
     } catch (error) {
       console.error('Registration error:', error);
       setError(
         error.response?.data?.message || 
-        'Registration failed. Please check your information and try again.'
+        error.message || 
+        'An error occurred during registration. Please try again.'
       );
+      setShowSuccessPopup(false);
     }
   };
 
@@ -160,14 +165,14 @@ const ParkingAdminRegistrationForm = () => {
                   <h2 className="text-2xl font-bold text-green-600 mb-4">Registration Successful!</h2>
                   <p className="text-gray-600 mb-8">Your parking admin account has been created successfully. You can now access your dashboard.</p>
                   <button
-                    onClick={() => navigate('/admin/dashboard')}
+                    onClick={handleDashboardAccess}
                     className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     Access Dashboard
                   </button>
                 </div>
               ) : (
-                <>
+                <React.Fragment>
                   <CurrentStep
                     formData={formData}
                     handleChange={handleChange}
@@ -194,7 +199,7 @@ const ParkingAdminRegistrationForm = () => {
                       </button>
                     )}
                   </div>
-                </>
+                </React.Fragment>
               )}
             </motion.div>
           </AnimatePresence>

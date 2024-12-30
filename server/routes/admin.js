@@ -98,14 +98,28 @@ router.post('/register', async (req, res) => {
     const admin = await Admin.create(req.body);
 
     // Initialize stats for the new admin
-    await Stats.initializeStats(
-      username,
-      parseInt(twoWheelerSpaces) || 0,
-      parseInt(fourWheelerSpaces) || 0
+    await Stats.create({
+      admin: admin._id,
+      adminUsername: admin.username,
+      twoWheelerSpaces: parseInt(twoWheelerSpaces) || 0,
+      fourWheelerSpaces: parseInt(fourWheelerSpaces) || 0,
+      totalSpaces: parseInt(twoWheelerSpaces || 0) + parseInt(fourWheelerSpaces || 0),
+      availableTwoWheelerSpaces: parseInt(twoWheelerSpaces) || 0,
+      availableFourWheelerSpaces: parseInt(fourWheelerSpaces) || 0
+    });
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: admin._id, username: admin.username },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
     );
 
     res.status(201).json({
+      success: true,
       message: 'Admin registered successfully',
+      token,
+      adminId: admin._id,
       admin: {
         id: admin._id,
         username: admin.username,
