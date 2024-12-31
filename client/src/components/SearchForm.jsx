@@ -5,8 +5,10 @@ import DatePicker from 'react-datepicker';
 import { format, parse } from 'date-fns';
 import { Search, Calendar, MapPin, Clock } from 'lucide-react';
 import "react-datepicker/dist/react-datepicker.css";
+import { useAuth } from '../context/AuthContext';
 
 function SearchForm() {
+  const { user } = useAuth();
   const [searchType, setSearchType] = useState('hourly');
   const [location, setLocation] = useState('');
   const [startDate, setStartDate] = useState(new Date());
@@ -21,24 +23,36 @@ function SearchForm() {
   const navigate = useNavigate();
 
   const handleSearch = () => {
-    if (location.trim()) {
-      // Convert dates to ISO strings for consistent format
-      const searchData = {
-        location: location.trim(),
-        searchType,
-        startDateTime: startDate.toISOString(),
-        endDateTime: endDate.toISOString()
-      };
-      console.log('Search data:', searchData);
-      navigate('/dashboard', { state: searchData });
-    } else {
-      setError('Please enter a location');
+    if (!user) {
+      setError('Please login first to search parking spots');
+      return;
     }
+
+    if (!location.trim()) {
+      setError('Please enter a location');
+      return;
+    }
+
+    // Convert dates to ISO strings for consistent format
+    const searchData = {
+      location: location.trim(),
+      searchType,
+      startDateTime: startDate.toISOString(),
+      endDateTime: endDate.toISOString()
+    };
+    console.log('Search data:', searchData);
+    navigate('/dashboard', { state: searchData });
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && location.trim()) {
-      handleSearch();
+    if (e.key === 'Enter') {
+      if (!user) {
+        setError('Please login first to search parking spots');
+        return;
+      }
+      if (location.trim()) {
+        handleSearch();
+      }
     }
   };
 

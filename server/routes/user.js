@@ -43,10 +43,10 @@ router.post('/vehicles', protect, async (req, res) => {
     console.log('Adding vehicle for user:', req.user.id);
     console.log('Vehicle data:', req.body);
 
-    const { makeModel, licensePlate, state } = req.body;
+    const { makeModel, licensePlate, state, category } = req.body;
 
     // Validate input
-    if (!makeModel?.trim() || !licensePlate?.trim() || !state?.trim()) {
+    if (!makeModel?.trim() || !licensePlate?.trim() || !state?.trim() || !category) {
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
@@ -66,7 +66,8 @@ router.post('/vehicles', protect, async (req, res) => {
       user: req.user.id,
       makeModel: makeModel.trim(),
       licensePlate: licensePlate.trim().toUpperCase(),
-      state: state.trim().toUpperCase()
+      state: state.trim().toUpperCase(),
+      category: category
     });
 
     console.log('Vehicle created:', vehicle);
@@ -113,7 +114,7 @@ router.post('/bookings', protect, async (req, res) => {
     console.log('User:', req.user);
     console.log('Request body:', req.body);
 
-    const { vehicleId, location, phone, total, duration, startDateTime, endDateTime, adminId } = req.body;
+    const { vehicleId, vehicle, location, phone, total, duration, startDateTime, endDateTime, adminId } = req.body;
 
     // Get admin username from location data
     const adminUsername = location.adminUsername?.replace(/^@/, '').trim();
@@ -135,22 +136,23 @@ router.post('/bookings', protect, async (req, res) => {
       throw new Error(`Admin not found with username/email: ${adminUsername}`);
     }
 
-    // Create booking object
+    // Create booking object with vehicle category
     const bookingData = {
       user: req.user.id,
       vehicle: vehicleId,
-      admin: admin._id, // Use found admin's ID
-      vehicleType: req.body.vehicleType || 'four-wheeler', // Default to four-wheeler if not specified
+      vehicleDetails: {
+        makeModel: vehicle.makeModel,
+        licensePlate: vehicle.licensePlate,
+        category: vehicle.category
+      },
+      admin: admin._id,
       location: {
         name: location.name,
         address: location.address || '',
-        adminUsername: admin.username || admin.email, // Use found admin's username/email
-        coordinates: {
-          lat: location.coordinates?.lat || null,
-          lng: location.coordinates?.lng || null
-        },
-        spotRate: location.spotRate
+        adminUsername: admin.username || admin.email,
+        coordinates: location.coordinates
       },
+      spotRate: parseFloat(req.body.location.spotRate),
       date: new Date(),
       startTime: new Date(startDateTime),
       endTime: new Date(endDateTime),
@@ -165,26 +167,18 @@ router.post('/bookings', protect, async (req, res) => {
     const booking = await Booking.create(bookingData);
     console.log('Booking created:', booking);
 
-    // Update admin stats using found admin's username/email
+    // Update stats with correct vehicle category
     await Stats.updateOnBooking(admin.username || admin.email, {
       bookingId: booking._id,
       vehicleId: booking.vehicle,
       userId: booking.user,
-      vehicleType: bookingData.vehicleType,
+      vehicleType: vehicle.category,
       amount: bookingData.total,
       startTime: bookingData.startTime,
       endTime: bookingData.endTime,
       duration: bookingData.duration,
       phone: bookingData.phone,
-      location: {
-        name: location.name,
-        address: location.address || '',
-        coordinates: {
-          lat: location.coordinates?.lat || null,
-          lng: location.coordinates?.lng || null
-        },
-        spotRate: location.spotRate
-      }
+      location: bookingData.location
     });
 
     // Populate booking details

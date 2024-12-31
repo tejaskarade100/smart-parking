@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut, Mail, User, X, Car, Clock, Plus, Trash2, ChevronRight, Calendar, MapPin, CreditCard } from 'lucide-react';
+import { LogOut, Mail, User, X, Car, Clock, Plus, Trash2, ChevronRight, Calendar, MapPin, CreditCard, Bike } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
@@ -16,7 +16,8 @@ const Profile = ({ onClose }) => {
   const [newVehicle, setNewVehicle] = useState({
     makeModel: '',
     licensePlate: '',
-    state: ''
+    state: '',
+    category: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -29,8 +30,9 @@ const Profile = ({ onClose }) => {
       return;
     }
 
+    // Fetch both vehicles and bookings on mount
     fetchVehicles();
-    fetchBookings();
+    fetchBookings(); // Make sure we have the latest bookings data
   }, [user, navigate, onClose]);
 
   const fetchVehicles = async () => {
@@ -53,30 +55,30 @@ const Profile = ({ onClose }) => {
       
       // Process bookings to add status based on end time
       const processedBookings = response.data.map(booking => {
-        // Get the end time from either endDateTime or calculate from date and duration
-        let endTime;
-        if (booking.endDateTime) {
-          endTime = new Date(booking.endDateTime);
-        } else if (booking.date && booking.duration) {
-          // If we have date and duration, calculate end time
-          endTime = new Date(booking.date);
-          endTime.setHours(endTime.getHours() + booking.duration);
-        } else {
-          // If no end time info, default to active
-          return { ...booking, status: 'Active' };
-        }
+        const endTime = booking.endDateTime 
+          ? new Date(booking.endDateTime)
+          : new Date(booking.startDateTime).setHours(
+              new Date(booking.startDateTime).getHours() + booking.duration
+            );
 
         const now = new Date();
-        console.log('Booking end time:', endTime);
-        console.log('Current time:', now);
-        const status = endTime < now ? 'Completed' : 'Active';
-        console.log('Calculated status:', status);
+        const status = new Date(endTime) < now ? 'Completed' : 'Active';
         
-        return { ...booking, status };
+        return { 
+          ...booking, 
+          status,
+          // Ensure these fields exist to prevent undefined errors
+          location: booking.location || {},
+          vehicle: booking.vehicle || {},
+          total: booking.total || 0,
+          duration: booking.duration || 0,
+          bookingReference: booking.bookingReference || 'N/A'
+        };
       });
       
       console.log('Processed bookings:', processedBookings);
       setBookings(processedBookings);
+      setError('');
     } catch (error) {
       console.error('Error fetching bookings:', error);
       setError('Failed to fetch bookings');
@@ -84,6 +86,13 @@ const Profile = ({ onClose }) => {
       setIsLoading(false);
     }
   };
+
+  // Add this useEffect to refetch bookings when showBookings changes
+  useEffect(() => {
+    if (showBookings) {
+      fetchBookings();
+    }
+  }, [showBookings]);
 
   const handleAddVehicle = async (e) => {
     e.preventDefault();
@@ -111,7 +120,8 @@ const Profile = ({ onClose }) => {
     const vehicleData = {
       makeModel: newVehicle.makeModel.trim(),
       licensePlate: newVehicle.licensePlate.trim().toUpperCase(),
-      state: newVehicle.state.trim().toUpperCase()
+      state: newVehicle.state.trim().toUpperCase(),
+      category: newVehicle.category
     };
 
     console.log('Sending vehicle data:', vehicleData);
@@ -124,7 +134,7 @@ const Profile = ({ onClose }) => {
       setVehicles(prevVehicles => [...prevVehicles, response.data]);
       
       // Reset form
-      setNewVehicle({ makeModel: '', licensePlate: '', state: '' });
+      setNewVehicle({ makeModel: '', licensePlate: '', state: '', category: '' });
       setShowAddVehicle(false);
       setError('');
     } catch (error) {
@@ -137,12 +147,15 @@ const Profile = ({ onClose }) => {
 
   const handleDeleteVehicle = async (vehicleId) => {
     try {
-      await api.delete(`/api/user/vehicles/${vehicleId}`);
-      setVehicles(vehicles.filter(vehicle => vehicle._id !== vehicleId));
+      // Simple delete request
+      await api.delete(`/user/vehicles/${vehicleId}`);
+      
+      // Update local state after successful deletion
+      setVehicles(prevVehicles => prevVehicles.filter(vehicle => vehicle._id !== vehicleId));
       setError('');
     } catch (error) {
       console.error('Error deleting vehicle:', error);
-      setError(error.response?.data?.message || 'Failed to delete vehicle');
+      setError('Failed to delete vehicle');
     }
   };
 
@@ -259,11 +272,20 @@ const Profile = ({ onClose }) => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="bg-blue-100 p-3 rounded-lg">
-                  <Car className="text-blue-600" size={24} />
+                  {vehicle.category === 'two-wheeler' ? (
+                    <Bike className="text-blue-600" size={24} />
+                  ) : (
+                    <Car className="text-blue-600" size={24} />
+                  )}
                 </div>
                 <div>
                   <p className="font-medium text-gray-800">{vehicle.makeModel}</p>
-                  <p className="text-sm text-gray-500">{vehicle.licensePlate} • {vehicle.state}</p>
+                  <p className="text-sm text-gray-500">
+                    {vehicle.licensePlate} • {vehicle.state} • 
+                    <span className="ml-1">
+                      {vehicle.category === 'two-wheeler' ? 'Two Wheeler' : 'Four Wheeler'}
+                    </span>
+                  </p>
                 </div>
               </div>
               <button
@@ -314,6 +336,19 @@ const Profile = ({ onClose }) => {
                   required
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Type</label>
+                <select
+                  value={newVehicle.category}
+                  onChange={(e) => setNewVehicle({ ...newVehicle, category: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select vehicle type</option>
+                  <option value="two-wheeler">Two Wheeler</option>
+                  <option value="four-wheeler">Four Wheeler</option>
+                </select>
+              </div>
             </div>
             <div className="flex space-x-3 pt-4">
               <button
@@ -327,7 +362,7 @@ const Profile = ({ onClose }) => {
                 type="button"
                 onClick={() => {
                   setShowAddVehicle(false);
-                  setNewVehicle({ makeModel: '', licensePlate: '', state: '' });
+                  setNewVehicle({ makeModel: '', licensePlate: '', state: '', category: '' });
                   setError('');
                 }}
                 className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"

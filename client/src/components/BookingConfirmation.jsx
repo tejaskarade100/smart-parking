@@ -4,7 +4,9 @@ import { QRCodeSVG } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import { motion } from 'framer-motion';
 import { FaDownload, FaShare, FaWhatsapp } from 'react-icons/fa';
+import { Car, Bike } from 'lucide-react';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 
 // Utility function for date formatting
 const formatDateTime = (dateString) => {
@@ -35,6 +37,7 @@ const BookingConfirmation = () => {
   const receiptRef = useRef();
   const [booking, setBooking] = useState(null);
   const [error, setError] = useState(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchBooking = async () => {
@@ -50,23 +53,23 @@ const BookingConfirmation = () => {
         // Process the booking data with fallbacks
         const bookingData = {
           ...response.data,
-          // Try different date fields
-          startDateTime: response.data.startDateTime || response.data.from || response.data.date,
-          endDateTime: response.data.endDateTime || response.data.to || new Date(new Date(response.data.date).getTime() + (response.data.duration || 0) * 60 * 60 * 1000).toISOString(),
-          // Get rate from different possible fields
-          hourlyRate: response.data.hourlyRate || 
-                     response.data.location?.spotRate || 
-                     response.data.rate || 
-                     40, // Default rate
+          startDateTime: response.data.startDateTime || response.data.startTime || response.data.date,
+          endDateTime: response.data.endDateTime || response.data.endTime,
+          spotRate: parseFloat(response.data.spotRate),
           duration: response.data.duration || 0,
           total: parseFloat(response.data.total || 0),
+          userName: response.data.userName || user?.name || 'N/A',
           location: {
-            ...response.data.location,
             name: response.data.location?.name || 'N/A',
             address: response.data.location?.address || 'N/A',
-            adminUsername: response.data.admin?.username || response.data.location?.adminUsername || 'N/A',
-            spotRate: response.data.location?.spotRate || response.data.hourlyRate || 40
-          }
+            adminUsername: response.data.location?.adminUsername || 'N/A'
+          },
+          vehicle: {
+            makeModel: response.data.vehicle?.makeModel || response.data.vehicleDetails?.makeModel,
+            licensePlate: response.data.vehicle?.licensePlate || response.data.vehicleDetails?.licensePlate,
+            category: response.data.vehicle?.category || response.data.vehicleDetails?.category
+          },
+          phone: response.data.phone || ''
         };
         
         console.log('Processed booking data:', bookingData);
@@ -83,7 +86,7 @@ const BookingConfirmation = () => {
     } else {
       setError('No booking ID provided');
     }
-  }, [bookingId]);
+  }, [bookingId, user]);
 
   if (error) {
     return (
@@ -188,6 +191,18 @@ const BookingConfirmation = () => {
           {/* Booking Details */}
           <div className="space-y-4 mb-6">
             <div>
+              <h3 className="font-semibold text-gray-800">Customer Details</h3>
+              <p className="text-gray-600">
+                <span className="font-medium">Name:</span> {booking.userName}
+              </p>
+              {booking.phone && (
+                <p className="text-gray-600">
+                  <span className="font-medium">Phone:</span> {booking.phone}
+                </p>
+              )}
+            </div>
+
+            <div>
               <h3 className="font-semibold text-gray-800">Location</h3>
               <p className="text-gray-600">
                 <span className="font-medium">Parking Name:</span> {booking.location.name}
@@ -206,9 +221,21 @@ const BookingConfirmation = () => {
 
             <div>
               <h3 className="font-semibold text-gray-800">Vehicle</h3>
-              <p className="text-gray-600">
-                {booking.vehicle.makeModel} ({booking.vehicle.licensePlate})
-              </p>
+              <div className="flex items-center space-x-2">
+                {(booking.vehicle?.category || booking.vehicleDetails?.category) === 'two-wheeler' ? (
+                  <Bike className="text-gray-600" size={20} />
+                ) : (
+                  <Car className="text-gray-600" size={20} />
+                )}
+                <p className="text-gray-600">
+                  {booking.vehicle.makeModel} ({booking.vehicle.licensePlate})
+                  <span className="text-sm text-gray-500 ml-2">
+                    {(booking.vehicle?.category || booking.vehicleDetails?.category) === 'two-wheeler' 
+                      ? '• Two Wheeler' 
+                      : '• Four Wheeler'}
+                  </span>
+                </p>
+              </div>
             </div>
 
             <div>
@@ -256,7 +283,7 @@ const BookingConfirmation = () => {
                 Duration: {booking?.duration || 0} hour(s)
               </p>
               <p className="text-sm text-gray-500">
-                Rate: ₹{booking?.hourlyRate || booking?.location?.spotRate || booking?.rate || 0}/hour
+                Rate: ₹{parseFloat(booking.spotRate).toFixed(2)}/hour
               </p>
             </div>
 

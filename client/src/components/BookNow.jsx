@@ -10,7 +10,6 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
   const navigate = useNavigate();
   const [vehicles, setVehicles] = useState([]);
   const [selectedVehicle, setSelectedVehicle] = useState('');
-  const [vehicleType, setVehicleType] = useState('four-wheeler');
   const [phone, setPhone] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -19,7 +18,8 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
   const [newVehicle, setNewVehicle] = useState({
     makeModel: '',
     licensePlate: '',
-    state: ''
+    state: '',
+    category: ''
   });
 
   // Constants for pricing
@@ -131,26 +131,20 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
         vehicleId: selectedVehicle,
         vehicle: {
           ...selectedVehicleDetails,
-          type: vehicleType
+          category: selectedVehicleDetails.category
         },
-        adminId: location.adminId,
         location: {
           name: location.name,
           address: location.address || '',
           adminUsername: location.adminUsername || '',
-          coordinates: {
-            lat: location.coordinates?.lat || null,
-            lng: location.coordinates?.lng || null
-          },
-          spotRate: location.spotRate
+          coordinates: location.coordinates,
+          spotRate: parseFloat(location.spotRate)
         },
-        phone: phone.trim() || null,
-        total: parseFloat(total.toFixed(2)),
         duration: duration,
-        startDateTime: new Date(bookingDateTime.startDateTime).toISOString(),
-        endDateTime: new Date(bookingDateTime.endDateTime).toISOString(),
-        hourlyRate: location.spotRate,
-        rate: location.spotRate,
+        total: total,
+        startDateTime: bookingDateTime.startDateTime,
+        endDateTime: bookingDateTime.endDateTime,
+        phone: phone.trim() || null,
         userName: user.name,
         userEmail: user.email
       };
@@ -201,7 +195,8 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
     const vehicleData = {
       makeModel: newVehicle.makeModel.trim(),
       licensePlate: newVehicle.licensePlate.trim().toUpperCase(),
-      state: newVehicle.state.trim().toUpperCase()
+      state: newVehicle.state.trim().toUpperCase(),
+      category: newVehicle.category
     };
 
     try {
@@ -215,7 +210,7 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
       setSelectedVehicle(response.data._id);
       
       // Reset form and close add vehicle form
-      setNewVehicle({ makeModel: '', licensePlate: '', state: '' });
+      setNewVehicle({ makeModel: '', licensePlate: '', state: '', category: '' });
       setShowAddVehicle(false);
       setError('');
     } catch (error) {
@@ -266,6 +261,19 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
                 required
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Vehicle Type</label>
+              <select
+                value={newVehicle.category}
+                onChange={(e) => setNewVehicle({ ...newVehicle, category: e.target.value })}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              >
+                <option value="">Select vehicle type</option>
+                <option value="two-wheeler">Two Wheeler</option>
+                <option value="four-wheeler">Four Wheeler</option>
+              </select>
+            </div>
           </div>
           <div className="flex space-x-3 pt-4">
             <button
@@ -286,7 +294,7 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
                 e.preventDefault();
                 e.stopPropagation();
                 setShowAddVehicle(false);
-                setNewVehicle({ makeModel: '', licensePlate: '', state: '' });
+                setNewVehicle({ makeModel: '', licensePlate: '', state: '', category: '' });
                 setError('');
               }}
               className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
@@ -376,21 +384,6 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {renderVehicleSelection()}
-
-              {/* Vehicle Type Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Vehicle Type
-                </label>
-                <select
-                  value={vehicleType}
-                  onChange={handleVehicleTypeChange}
-                  className="w-full px-3 py-2 border rounded-md"
-                >
-                  <option value="two-wheeler">Two Wheeler</option>
-                  <option value="four-wheeler">Four Wheeler</option>
-                </select>
-              </div>
 
               {/* Contact Information */}
               <div>

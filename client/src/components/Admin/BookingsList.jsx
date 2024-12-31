@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, MapPin, Car, User, IndianRupee } from 'lucide-react';
+import { Calendar, Clock, MapPin, Car, User, IndianRupee, Bike } from 'lucide-react';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 
@@ -152,22 +152,22 @@ const BookingsList = () => {
 
               {/* Vehicle Info */}
               <div className="flex items-start space-x-3">
-                <Car className="w-5 h-5 text-gray-500 mt-1" />
+                {(booking.vehicle?.category || booking.vehicleDetails?.category) === 'two-wheeler' ? (
+                  <Bike className="w-5 h-5 text-gray-500 mt-1" />
+                ) : (
+                  <Car className="w-5 h-5 text-gray-500 mt-1" />
+                )}
                 <div>
                   <p className="text-sm text-gray-600">Vehicle Details</p>
                   <div className="flex flex-col">
-                    <span>{booking.vehicleMakeModel !== 'N/A' ? (
-                      <span>{booking.vehicleMakeModel}</span>
-                    ) : (
-                      <span>Vehicle</span>
-                    )}</span>
-                    <span className="text-xs text-gray-400">{booking.vehicleNumber !== 'N/A' ? (
-                      <span className="uppercase">{booking.vehicleNumber}</span>
-                    ) : (
-                      <span>No plate number</span>
-                    )}</span>
+                    <span>{booking.vehicle?.makeModel || booking.vehicleDetails?.makeModel || 'N/A'}</span>
+                    <span className="text-xs text-gray-400">
+                      {booking.vehicle?.licensePlate || booking.vehicleDetails?.licensePlate || 'No plate number'}
+                    </span>
                     <span className="text-xs text-blue-500 font-medium mt-1">
-                      {booking.vehicleType === 'two-wheeler' ? 'Two Wheeler' : 'Four Wheeler'}
+                      {(booking.vehicle?.category || booking.vehicleDetails?.category) === 'two-wheeler' 
+                        ? 'Two Wheeler' 
+                        : 'Four Wheeler'}
                     </span>
                   </div>
                 </div>

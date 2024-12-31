@@ -66,6 +66,19 @@ const bookingSchema = new mongoose.Schema({
     type: String,
     enum: ['Paid', 'Pending', 'Failed'],
     default: 'Paid'
+  },
+  vehicleDetails: {
+    makeModel: String,
+    licensePlate: String,
+    category: {
+      type: String,
+      enum: ['two-wheeler', 'four-wheeler'],
+      required: true
+    }
+  },
+  spotRate: {
+    type: Number,
+    required: true
   }
 }, {
   timestamps: true
