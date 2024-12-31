@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, Car, Phone, CreditCard } from 'lucide-react';
+import { X, Car, Phone, CreditCard, Plus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
@@ -15,6 +15,12 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [bookingConfirmation, setBookingConfirmation] = useState(null);
+  const [showAddVehicle, setShowAddVehicle] = useState(false);
+  const [newVehicle, setNewVehicle] = useState({
+    makeModel: '',
+    licensePlate: '',
+    state: ''
+  });
 
   // Constants for pricing
   const SERVICE_FEE_PERCENTAGE = 5; // 5%
@@ -168,6 +174,159 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
     }
   };
 
+  const handleAddVehicle = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsLoading(true);
+    setError('');
+
+    // Validate input
+    if (!newVehicle.makeModel.trim()) {
+      setError('Please enter make and model');
+      setIsLoading(false);
+      return;
+    }
+    if (!newVehicle.licensePlate.trim()) {
+      setError('Please enter license plate number');
+      setIsLoading(false);
+      return;
+    }
+    if (!newVehicle.state.trim()) {
+      setError('Please enter state');
+      setIsLoading(false);
+      return;
+    }
+
+    // Format data
+    const vehicleData = {
+      makeModel: newVehicle.makeModel.trim(),
+      licensePlate: newVehicle.licensePlate.trim().toUpperCase(),
+      state: newVehicle.state.trim().toUpperCase()
+    };
+
+    try {
+      const response = await api.post('/user/vehicles', vehicleData);
+      console.log('Vehicle added successfully:', response.data);
+      
+      // Update vehicles list with new vehicle
+      setVehicles(prevVehicles => [...prevVehicles, response.data]);
+      
+      // Select the newly added vehicle
+      setSelectedVehicle(response.data._id);
+      
+      // Reset form and close add vehicle form
+      setNewVehicle({ makeModel: '', licensePlate: '', state: '' });
+      setShowAddVehicle(false);
+      setError('');
+    } catch (error) {
+      console.error('Error adding vehicle:', error.response?.data || error.message);
+      setError(error.response?.data?.message || 'Failed to add vehicle');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderVehicleSelection = () => (
+    <div className="space-y-4">
+      {showAddVehicle ? (
+        <div className="bg-white p-6 rounded-xl shadow-lg space-y-4">
+          <h4 className="text-lg font-semibold text-gray-800 mb-4">Add New Vehicle</h4>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Make & Model</label>
+              <input
+                type="text"
+                value={newVehicle.makeModel}
+                onChange={(e) => setNewVehicle({ ...newVehicle, makeModel: e.target.value })}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="e.g., Toyota Camry"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">License Plate</label>
+              <input
+                type="text"
+                value={newVehicle.licensePlate}
+                onChange={(e) => setNewVehicle({ ...newVehicle, licensePlate: e.target.value })}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="e.g., ABC123"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+              <input
+                type="text"
+                value={newVehicle.state}
+                onChange={(e) => setNewVehicle({ ...newVehicle, state: e.target.value })}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="e.g., CA"
+                maxLength="2"
+                required
+              />
+            </div>
+          </div>
+          <div className="flex space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleAddVehicle(e);
+              }}
+              disabled={isLoading}
+              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isLoading ? 'Adding...' : 'Add Vehicle'}
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowAddVehicle(false);
+                setNewVehicle({ makeModel: '', licensePlate: '', state: '' });
+                setError('');
+              }}
+              className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Vehicle
+            </label>
+            <select
+              value={selectedVehicle}
+              onChange={handleVehicleChange}
+              className="w-full px-3 py-2 border rounded-md mb-2"
+            >
+              <option value="">Choose a vehicle</option>
+              {vehicles.map((vehicle) => (
+                <option key={vehicle._id} value={vehicle._id}>
+                  {vehicle.makeModel} ({vehicle.licensePlate})
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => setShowAddVehicle(true)}
+              className="w-full flex items-center justify-center space-x-2 p-2 border border-dashed border-gray-300 rounded-md text-gray-600 hover:text-gray-800 hover:border-gray-400 transition-colors"
+            >
+              <Plus size={20} />
+              <span>Add New Vehicle</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -216,55 +375,21 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Vehicle Selection */}
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Vehicle
-                  </label>
-                  {vehicles.length > 0 ? (
-                    <select
-                      value={selectedVehicle}
-                      onChange={handleVehicleChange}
-                      className="w-full px-3 py-2 border rounded-md"
-                      required
-                    >
-                      <option value="">Choose a vehicle</option>
-                      {vehicles.map((vehicle) => (
-                        <option key={vehicle._id} value={vehicle._id}>
-                          {vehicle.makeModel} ({vehicle.licensePlate})
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <div className="text-center p-4 bg-gray-50 rounded-md">
-                      <Car className="mx-auto text-gray-400 mb-2" size={24} />
-                      <p className="text-sm text-gray-600">No vehicles found</p>
-                      <button
-                        type="button"
-                        onClick={() => navigate('/vehicles')}
-                        className="mt-2 text-blue-600 hover:text-blue-700 text-sm"
-                      >
-                        Add a vehicle
-                      </button>
-                    </div>
-                  )}
-                </div>
+              {renderVehicleSelection()}
 
-                {/* Vehicle Type Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Vehicle Type
-                  </label>
-                  <select
-                    value={vehicleType}
-                    onChange={handleVehicleTypeChange}
-                    className="w-full px-3 py-2 border rounded-md"
-                  >
-                    <option value="two-wheeler">Two Wheeler</option>
-                    <option value="four-wheeler">Four Wheeler</option>
-                  </select>
-                </div>
+              {/* Vehicle Type Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Vehicle Type
+                </label>
+                <select
+                  value={vehicleType}
+                  onChange={handleVehicleTypeChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                >
+                  <option value="two-wheeler">Two Wheeler</option>
+                  <option value="four-wheeler">Four Wheeler</option>
+                </select>
               </div>
 
               {/* Contact Information */}
