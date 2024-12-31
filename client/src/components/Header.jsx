@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LoginPage from '../pages/LoginPage';
 import Profile from './Profile';
@@ -75,16 +75,19 @@ function Header() {
           </motion.a>
           
           <nav className="flex items-center space-x-8">
-            <motion.a 
-              href="/about" 
-              className="text-gray-700 hover:text-gray-900 transition-colors duration-200"
+            <motion.div
               variants={buttonVariants}
               initial="initial"
               whileHover="hover"
               whileTap="tap"
             >
-              About
-            </motion.a>
+              <Link 
+                to="/about" 
+                className="text-gray-700 hover:text-gray-900 transition-colors duration-200"
+              >
+                About
+              </Link>
+            </motion.div>
             <motion.button 
               className="inline-flex items-center space-x-2 px-4 py-2 border rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors duration-200"
               variants={buttonVariants}

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400">
+  <style>
+    text { font-family: Arial, sans-serif; }
+    .title { font-size: 24px; font-weight: bold; }
+    .subtitle { font-size: 18px; }
+    .data { font-size: 36px; font-weight: bold; }
+  </style>
+  
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#f3f4f6"/>
+  
+  <!-- Time Wasted -->
+  <g transform="translate(50, 50)">
+    <circle cx="100" cy="100" r="80" fill="#3b82f6"/>
+    <text x="100" y="90" text-anchor="middle" fill="white" class="title">Time Wasted</text>
+    <text x="100" y="130" text-anchor="middle" fill="white" class="data">17 min</text>
+    <text x="100" y="160" text-anchor="middle" fill="white" class="subtitle">per trip</text>
+  </g>
+  
+  <!-- Pollution -->
+  <g transform="translate(300, 50)">
+    <rect x="0" y="0" width="180" height="180" fill="#10b981"/>
+    <text x="90" y="90" text-anchor="middle" fill="white" class="title">CO2 Emissions</text>
+    <text x="90" y="130" text-anchor="middle" fill="white" class="data">1.3 kg</text>
+    <text x="90" y="160" text-anchor="middle" fill="white" class="subtitle">per search</text>
+  </g>
+  
+  <!-- Stress Level -->
+  <g transform="translate(50, 250)">
+    <polygon points="0,0 180,0 90,180" fill="#ef4444"/>
+    <text x="90" y="60" text-anchor="middle" fill="white" class="title">Stress Level</text>
+    <text x="90" y="100" text-anchor="middle" fill="white" class="data">68%</text>
+    <text x="90" y="130" text-anchor="middle" fill="white" class="subtitle">increase</text>
+  </g>
+  
+  <!-- Fuel Wasted -->
+  <g transform="translate(300, 250)">
+    <rect x="0" y="0" width="180" height="180" rx="20" ry="20" fill="#f59e0b"/>
+    <text x="90" y="90" text-anchor="middle" fill="white" class="title">Fuel Wasted</text>
+    <text x="90" y="130" text-anchor="middle" fill="white" class="data">0.3 L</text>
+    <text x="90" y="160" text-anchor="middle" fill="white" class="subtitle">per search</text>
+  </g>
+</svg>
+

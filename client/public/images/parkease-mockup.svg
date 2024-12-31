@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600">
+  <defs>
+    <linearGradient id="phoneGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f0f0f0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d0d0d0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Phone body -->
+  <rect x="50" y="50" width="300" height="500" rx="20" fill="url(#phoneGradient)" />
+  <rect x="60" y="60" width="280" height="480" rx="10" fill="#fff" />
+  
+  <!-- App header -->
+  <rect x="60" y="60" width="280" height="50" fill="#3b82f6" />
+  <text x="80" y="92" font-family="Arial, sans-serif" font-size="20" fill="#fff">ParkEase</text>
+  
+  <!-- Map -->
+  <rect x="70" y="120" width="260" height="300" fill="#e5e7eb" />
+  
+  <!-- Parking spots -->
+  <g id="parkingSpots"></g>
+  
+  <!-- Bottom navigation -->
+  <rect x="60" y="490" width="280" height="50" fill="#f3f4f6" />
+  <g id="navIcons"></g>
+  
+  <script type="text/javascript">
+    <![CDATA[
+      function random(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+      
+      // Generate parking spots
+      const spotColors = ['#10b981', '#f59e0b', '#ef4444'];
+      const parkingSpotsGroup = document.getElementById('parkingSpots');
+      for (let i = 0; i < 15; i++) {
+        const spot = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        spot.setAttribute("x", random(80, 300));
+        spot.setAttribute("y", random(130, 400));
+        spot.setAttribute("width", 20);
+        spot.setAttribute("height", 10);
+        spot.setAttribute("fill", spotColors[random(0, 2)]);
+        spot.setAttribute("rx", 2);
+        parkingSpotsGroup.appendChild(spot);
+      }
+      
+      // Generate navigation icons
+      const navIconsGroup = document.getElementById('navIcons');
+      const iconData = [
+        {path: "M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z", title: "Home"},
+        {path: "M12,11.5A2.5,2.5 0 0,1 9.5,9A2.5,2.5 0 0,1 12,6.5A2.5,2.5 0 0,1 14.5,9A2.5,2.5 0 0,1 12,11.5M12,2A7,7 0 0,0 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9A7,7 0 0,0 12,2Z", title: "Map"},
+        {path: "M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17M11,9H13V7H11V9Z", title: "Info"},
+        {path: "M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z", title: "Profile"}
+      ];
+      
+      iconData.forEach((icon, index) => {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute("transform", `translate(${75 + index * 70}, 500) scale(0.7)`);
+        
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", icon.path);
+        path.setAttribute("fill", "#4b5563");
+        
+        const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+        title.textContent = icon.title;
+        
+        g.appendChild(title);
+        g.appendChild(path);
+        navIconsGroup.appendChild(g);
+      });
+    ]]>
+  </script>
+</svg>
+

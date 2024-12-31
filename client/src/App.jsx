@@ -10,6 +10,7 @@ import ParkingCategoriesPage from './pages/ParkingCategoriesPage';
 import ParkingAdminRegistrationForm from './pages/ParkingAdminRegistrationForm';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminBookings from './pages/AdminBookings';
+import AboutUs from './pages/about-us';
 
 function App() {
   const { user, isAdmin } = useAuth();
@@ -39,6 +40,7 @@ function App() {
             />
             <Route path="/parking-categories" element={<ParkingCategoriesPage />} />
             <Route path="/admin-registration" element={<ParkingAdminRegistrationForm />} />
+            <Route path="/about" element={<AboutUs />} />
             <Route 
               path="/admin/dashboard" 
               element={

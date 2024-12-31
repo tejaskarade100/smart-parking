@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 400">
+  <style>
+    .building { fill: #3b82f6; }
+    .window { fill: #bfdbfe; }
+    .road { fill: #4b5563; }
+    .car { fill: #ef4444; }
+    .tree { fill: #10b981; }
+    .parking { fill: #6b7280; }
+    .signal { fill: #f59e0b; }
+  </style>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#f3f4f6"/>
+
+  <!-- Buildings -->
+  <rect class="building" x="50" y="50" width="100" height="300"/>
+  <rect class="building" x="200" y="100" width="120" height="250"/>
+  <rect class="building" x="370" y="150" width="80" height="200"/>
+
+  <!-- Windows -->
+  <g class="window">
+    <rect x="70" y="80" width="20" height="20"/>
+    <rect x="110" y="80" width="20" height="20"/>
+    <rect x="70" y="120" width="20" height="20"/>
+    <rect x="110" y="120" width="20" height="20"/>
+    <rect x="220" y="130" width="20" height="20"/>
+    <rect x="280" y="130" width="20" height="20"/>
+    <rect x="220" y="170" width="20" height="20"/>
+    <rect x="280" y="170" width="20" height="20"/>
+    <rect x="390" y="180" width="20" height="20"/>
+    <rect x="390" y="220" width="20" height="20"/>
+  </g>
+
+  <!-- Road -->
+  <rect class="road" x="0" y="350" width="500" height="50"/>
+
+  <!-- Cars -->
+  <rect class="car" x="100" y="360" width="40" height="20" rx="5"/>
+  <rect class="car" x="300" y="370" width="40" height="20" rx="5"/>
+
+  <!-- Trees -->
+  <circle class="tree" cx="30" cy="340" r="20"/>
+  <circle class="tree" cx="470" cy="340" r="20"/>
+
+  <!-- Parking Area -->
+  <rect class="parking" x="150" y="300" width="200" height="50"/>
+
+  <!-- Smart Parking Signal -->
+  <circle class="signal" cx="250" cy="270" r="10"/>
+
+  <!-- Connecting Lines -->
+  <g stroke="#3b82f6" stroke-width="2">
+    <line x1="250" y1="270" x2="120" y2="370"/>
+    <line x1="250" y1="270" x2="320" y2="380"/>
+    <line x1="250" y1="270" x2="250" y2="325"/>
+  </g>
+</svg>
+

@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a90e2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#81c3fd;stop-opacity:1" />
+    </linearGradient>
+    <filter id="moonGlow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5" />
+    </filter>
+  </defs>
+  
+  <!-- Sky -->
+  <rect width="800" height="600" fill="url(#skyGradient)" />
+  
+  <!-- Moon -->
+  <circle cx="700" cy="100" r="40" fill="#fff" filter="url(#moonGlow)" />
+  
+  <!-- Stars -->
+  <g id="stars"></g>
+  
+  <!-- Buildings -->
+  <g id="buildings"></g>
+  
+  <!-- Cars -->
+  <g id="cars"></g>
+  
+  <script type="text/javascript">
+    <![CDATA[
+      function random(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+      
+      // Generate stars
+      const starsGroup = document.getElementById('stars');
+      for (let i = 0; i < 100; i++) {
+        const star = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        star.setAttribute("cx", random(0, 800));
+        star.setAttribute("cy", random(0, 300));
+        star.setAttribute("r", Math.random() * 1.5);
+        star.setAttribute("fill", "#fff");
+        starsGroup.appendChild(star);
+      }
+      
+      // Generate buildings
+      const buildingsGroup = document.getElementById('buildings');
+      for (let i = 0; i < 20; i++) {
+        const building = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        const width = random(40, 100);
+        const height = random(100, 400);
+        building.setAttribute("x", i * 40);
+        building.setAttribute("y", 600 - height);
+        building.setAttribute("width", width);
+        building.setAttribute("height", height);
+        building.setAttribute("fill", `rgb(${random(50, 150)}, ${random(50, 150)}, ${random(50, 150)})`);
+        buildingsGroup.appendChild(building);
+        
+        // Add windows
+        for (let j = 0; j < 5; j++) {
+          for (let k = 0; k < 3; k++) {
+            if (Math.random() > 0.3) {
+              const window = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+              window.setAttribute("x", i * 40 + 10 + k * 20);
+              window.setAttribute("y", 600 - height + 20 + j * 40);
+              window.setAttribute("width", 10);
+              window.setAttribute("height", 20);
+              window.setAttribute("fill", "yellow");
+              buildingsGroup.appendChild(window);
+            }
+          }
+        }
+      }
+      
+      // Generate cars
+      const carsGroup = document.getElementById('cars');
+      for (let i = 0; i < 10; i++) {
+        const car = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        car.setAttribute("x", random(0, 750));
+        car.setAttribute("y", 550);
+        car.setAttribute("width", 40);
+        car.setAttribute("height", 20);
+        car.setAttribute("fill", `rgb(${random(0, 255)}, ${random(0, 255)}, ${random(0, 255)})`);
+        car.setAttribute("rx", 5);
+        carsGroup.appendChild(car);
+      }
+    ]]>
+  </script>
+</svg>[v0-no-op-code-block-prefix]
+
