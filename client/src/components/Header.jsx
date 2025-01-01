@@ -88,16 +88,14 @@ function Header() {
                 About
               </Link>
             </motion.div>
-            <motion.button 
-              className="inline-flex items-center space-x-2 px-4 py-2 border rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors duration-200"
-              variants={buttonVariants}
-              initial="initial"
-              whileHover="hover"
-              whileTap="tap"
+            <a 
+              href="https://drive.google.com/file/d/1O1qGnbV9tbKeMPKiPyOZZ5FciD5U5rsV/view"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
             >
-              <Smartphone className="w-5 h-5" />
-              <span>Get the App</span>
-            </motion.button>
+              Get the App
+            </a>
 
             <motion.button
               onClick={handlePartnerClick}
