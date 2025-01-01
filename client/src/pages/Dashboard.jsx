@@ -149,9 +149,9 @@ const Dashboard = () => {
   return (
     <div className="fixed inset-0 flex flex-col">
       {/* Main content container that starts below header */}
-      <div className="flex flex-1 mt-16"> {/* mt-16 accounts for header height */}
+      <div className="flex flex-1 mt-16 relative">
         {/* Left Panel - 40% */}
-        <div className="w-2/5 h-[calc(100vh-4rem)] overflow-y-auto">
+        <div className="w-2/5 h-[calc(100vh-4rem)] overflow-y-auto z-10">
           <div className="p-4">
             <h2 className="text-2xl font-bold mb-4">Available Parking Spots</h2>
             {parkingSpots.map((spot, index) => (
@@ -174,26 +174,28 @@ const Dashboard = () => {
         </div>
 
         {/* Right Panel - 60% */}
-        <div className="w-3/5 h-[calc(100vh-4rem)]">
+        <div className="w-3/5 h-[calc(100vh-4rem)] z-0">
           <ParkingMap
             locations={parkingSpots}
             selectedLocation={selectedLocation}
             onLocationSelect={handleLocationSelect}
           />
         </div>
+
+        {/* BookNow Modal */}
+        {showBookNow && (
+          <BookNow 
+            onClose={() => setShowBookNow(false)}
+            location={bookingLocation}
+            bookingDateTime={searchDateTime}
+          />
+        )}
       </div>
 
-      {/* BookNow Modal */}
-      {showBookNow && (
-        <BookNow 
-          onClose={() => setShowBookNow(false)}
-          location={bookingLocation}
-          bookingDateTime={searchDateTime}
-        />
-      )}
       <SearchForm 
         onSubmit={handleSearchSubmit}
         error={locationError}
+        className="z-20"
       />
     </div>
   );

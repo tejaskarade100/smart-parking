@@ -11,11 +11,15 @@ import { useAuth } from '../context/AuthContext';
 // Utility function for date formatting
 const formatDateTime = (dateString) => {
   try {
+    if (!dateString) {
+      throw new Error('No date provided');
+    }
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
       throw new Error('Invalid date');
     }
     return date.toLocaleString('en-US', {
+      weekday: 'short',
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -25,7 +29,7 @@ const formatDateTime = (dateString) => {
     });
   } catch (error) {
     console.error('Date parsing error:', error);
-    return 'Invalid Date';
+    return 'Not available';
   }
 };
 
@@ -50,11 +54,16 @@ const BookingConfirmation = () => {
           throw new Error('No booking data received');
         }
 
-        // Process the booking data with fallbacks
+        // Process the booking data with proper date handling
         const bookingData = {
           ...response.data,
           startDateTime: response.data.startDateTime || response.data.startTime || response.data.date,
-          endDateTime: response.data.endDateTime || response.data.endTime,
+          endDateTime: response.data.endDateTime || response.data.endTime || (() => {
+            // Calculate end time based on start time and duration if not provided
+            const startTime = new Date(response.data.startDateTime || response.data.startTime || response.data.date);
+            const durationHours = response.data.duration || 0;
+            return new Date(startTime.getTime() + (durationHours * 60 * 60 * 1000)).toISOString();
+          })(),
           spotRate: parseFloat(response.data.spotRate),
           duration: response.data.duration || 0,
           total: parseFloat(response.data.total || 0),
@@ -169,155 +178,116 @@ const BookingConfirmation = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 pt-16">
+    <div className="min-h-screen flex items-center justify-center p-2 bg-gray-50 pt-12">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-        <div className="p-6" ref={receiptRef} id="booking-receipt">
-          {/* Header */}
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Booking Confirmed!</h2>
-            <p className="text-gray-600">Your parking spot has been reserved</p>
+        <div className="p-4" ref={receiptRef} id="booking-receipt">
+          {/* Header - more compact */}
+          <div className="text-center mb-3">
+            <h2 className="text-xl font-bold text-gray-800">Booking Confirmed!</h2>
+            <p className="text-sm text-gray-600">Your parking spot has been reserved</p>
           </div>
 
-          {/* QR Code */}
-          <div className="flex justify-center mb-6">
+          {/* QR Code - slightly smaller */}
+          <div className="flex justify-center mb-3">
             <QRCodeSVG 
               value={`PARKING:${booking._id}`}
-              size={128}
+              size={96}
               level="H"
               includeMargin={true}
             />
           </div>
 
-          {/* Booking Details */}
-          <div className="space-y-4 mb-6">
-            <div>
-              <h3 className="font-semibold text-gray-800">Customer Details</h3>
-              <p className="text-gray-600">
-                <span className="font-medium">Name:</span> {booking.userName}
-              </p>
-              {booking.phone && (
+          {/* Booking Details - more compact layout */}
+          <div className="space-y-2 mb-4 text-sm">
+            {/* Customer Details */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <h3 className="font-semibold text-gray-800">Customer Details</h3>
                 <p className="text-gray-600">
-                  <span className="font-medium">Phone:</span> {booking.phone}
+                  {booking.userName}
+                  {booking.phone && <span className="block">{booking.phone}</span>}
                 </p>
-              )}
-            </div>
+              </div>
 
-            <div>
-              <h3 className="font-semibold text-gray-800">Location</h3>
-              <p className="text-gray-600">
-                <span className="font-medium">Parking Name:</span> {booking.location.name}
-              </p>
-              {booking.location.address && (
-                <p className="text-gray-600">
-                  <span className="font-medium">Parking Address:</span> {booking.location.address}
-                </p>
-              )}
-              {booking.location.adminUsername && booking.location.adminUsername !== 'N/A' && (
-                <p className="text-sm text-gray-500">
-                  <span className="font-medium">Owner:</span> @{booking.location.adminUsername}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-gray-800">Vehicle</h3>
-              <div className="flex items-center space-x-2">
-                {(booking.vehicle?.category || booking.vehicleDetails?.category) === 'two-wheeler' ? (
-                  <Bike className="text-gray-600" size={20} />
-                ) : (
-                  <Car className="text-gray-600" size={20} />
-                )}
-                <p className="text-gray-600">
-                  {booking.vehicle.makeModel} ({booking.vehicle.licensePlate})
-                  <span className="text-sm text-gray-500 ml-2">
-                    {(booking.vehicle?.category || booking.vehicleDetails?.category) === 'two-wheeler' 
-                      ? '• Two Wheeler' 
-                      : '• Four Wheeler'}
-                  </span>
-                </p>
+              {/* Vehicle Details - moved to right column */}
+              <div>
+                <h3 className="font-semibold text-gray-800">Vehicle</h3>
+                <div className="flex items-center gap-1">
+                  {booking.vehicle?.category === 'two-wheeler' ? (
+                    <Bike className="text-gray-600" size={16} />
+                  ) : (
+                    <Car className="text-gray-600" size={16} />
+                  )}
+                  <p className="text-gray-600">
+                    {booking.vehicle.makeModel}
+                    <span className="block">{booking.vehicle.licensePlate}</span>
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div>
-              <h3 className="font-semibold text-gray-800">Date & Time</h3>
+            {/* Location */}
+            <div className="border-t pt-2">
+              <h3 className="font-semibold text-gray-800">Location</h3>
               <p className="text-gray-600">
-                From: {(() => {
-                  try {
-                    const date = new Date(booking?.startDateTime || booking?.from || booking?.date);
-                    return date.toLocaleString('en-US', {
-                      weekday: 'short',
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: true
-                    });
-                  } catch (e) {
-                    console.error('Error formatting start date:', e);
-                    return 'Not available';
-                  }
-                })()}
-              </p>
-              <p className="text-gray-600">
-                To: {(() => {
-                  try {
-                    const date = new Date(booking?.endDateTime || booking?.to || 
-                      new Date(new Date(booking?.date).getTime() + (booking?.duration || 0) * 60 * 60 * 1000));
-                    return date.toLocaleString('en-US', {
-                      weekday: 'short',
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      hour12: true
-                    });
-                  } catch (e) {
-                    console.error('Error formatting end date:', e);
-                    return 'Not available';
-                  }
-                })()}
-              </p>
-              <p className="text-sm text-gray-500">
-                Duration: {booking?.duration || 0} hour(s)
-              </p>
-              <p className="text-sm text-gray-500">
-                Rate: ₹{parseFloat(booking.spotRate).toFixed(2)}/hour
+                {booking.location.name}
+                {booking.location.address && (
+                  <span className="block text-xs">{booking.location.address}</span>
+                )}
+                {booking.location.adminUsername && booking.location.adminUsername !== 'N/A' && (
+                  <span className="text-xs text-gray-500">@{booking.location.adminUsername}</span>
+                )}
               </p>
             </div>
 
-            <div>
-              <h3 className="font-semibold text-gray-800">Amount Paid</h3>
-              <p className="text-xl font-bold text-green-600">₹{booking?.total?.toFixed(2) || '0.00'}</p>
-              <p className="text-sm text-gray-500">
-                (Including {SERVICE_FEE_PERCENTAGE}% service fee)
-              </p>
+            {/* Date & Time + Payment - side by side */}
+            <div className="grid grid-cols-2 gap-2 border-t pt-2">
+              <div>
+                <h3 className="font-semibold text-gray-800">Date & Time</h3>
+                <p className="text-gray-600 text-xs">
+                  From: {formatDateTime(booking?.startDateTime)}
+                </p>
+                <p className="text-gray-600 text-xs">
+                  To: {formatDateTime(booking?.endDateTime)}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Duration: {booking?.duration || 0}h
+                  <span className="block">Rate: ₹{parseFloat(booking.spotRate).toFixed(2)}/h</span>
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-800">Amount Paid</h3>
+                <p className="text-lg font-bold text-green-600">₹{booking?.total?.toFixed(2) || '0.00'}</p>
+                <p className="text-xs text-gray-500">
+                  (Incl. {SERVICE_FEE_PERCENTAGE}% service fee)
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3">
+          {/* Action Buttons - more compact */}
+          <div className="flex gap-2 mt-2">
             <button
               onClick={downloadReceipt}
-              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex-1 flex items-center justify-center gap-1 bg-blue-600 text-white py-1.5 rounded-lg hover:bg-blue-700 transition-colors text-sm"
             >
-              <FaDownload /> Download
+              <FaDownload size={14} /> Download
             </button>
             <button
               onClick={handleShare}
-              className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors"
+              className="flex-1 flex items-center justify-center gap-1 bg-green-600 text-white py-1.5 rounded-lg hover:bg-green-700 transition-colors text-sm"
             >
-              <FaShare /> Share
+              <FaShare size={14} /> Share
             </button>
           </div>
         </div>
 
         {/* Close Button */}
-        <div className="border-t p-4">
+        <div className="border-t p-2">
           <button
             onClick={() => navigate('/')}
-            className="w-full py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            className="w-full py-1.5 text-gray-600 hover:text-gray-800 transition-colors text-sm"
           >
             Close
           </button>

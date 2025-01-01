@@ -239,7 +239,7 @@ const ParkingMap = ({ locations, selectedLocation, onLocationSelect }) => {
   document.head.appendChild(style);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full" style={{ zIndex: 1 }}>
       <div ref={mapRef} className="absolute inset-0" />
     </div>
   );

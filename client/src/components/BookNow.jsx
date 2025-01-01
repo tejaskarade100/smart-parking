@@ -374,69 +374,71 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999]"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center mt-16"
+      style={{ zIndex: 9999 }}
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         onClick={e => e.stopPropagation()}
-        className="bg-white rounded-lg shadow-xl p-6 w-full max-w-4xl relative z-[10000]"
+        className="bg-white rounded-lg shadow-xl p-4 w-full max-w-4xl relative"
+        style={{ zIndex: 10000 }}
       >
-        <div className="absolute top-4 right-20 text-right">
-          <p className="text-sm text-gray-600">From: {bookingDateTime.startDateTime}</p>
-          <p className="text-sm text-gray-600">To: {bookingDateTime.endDateTime}</p>
-        </div>
+        {/* <div className="absolute top-3 right-16 text-right text-xs">
+          <p className="text-gray-600">From: {bookingDateTime.startDateTime}</p>
+          <p className="text-gray-600">To: {bookingDateTime.endDateTime}</p>
+        </div> */}
 
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+          className="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
         >
-          <X size={20} />
+          <X size={18} />
         </button>
 
-        <h2 className="text-2xl font-bold mb-6">Book Parking Space</h2>
+        <h2 className="text-xl font-bold mb-4">Book Parking Space</h2>
 
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-2 gap-6">
           {/* Left Column */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Parking Details */}
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Parking Details</h3>
-              <p className="text-gray-600">{location.name}</p>
-              <p className="text-gray-600">{location.address}</p>
+            <div className="space-y-1">
+              <h3 className="text-base font-semibold">Parking Details</h3>
+              <p className="text-sm text-gray-600">{location.name}</p>
+              <p className="text-sm text-gray-600">{location.address}</p>
               {location.adminUsername && (
-                <p className="text-sm text-gray-500">Owner: @{location.adminUsername}</p>
+                <p className="text-xs text-gray-500">Owner: @{location.adminUsername}</p>
               )}
             </div>
 
             {/* Account Info */}
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Account Information</h3>
-              <p className="text-gray-600">{user?.email}</p>
+            <div className="space-y-1">
+              <h3 className="text-base font-semibold">Account Information</h3>
+              <p className="text-sm text-gray-600">{user?.email}</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {renderVehicleSelection()}
 
               {/* Contact Information */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Phone Number (Optional)
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border rounded-md"
+                    className="w-full pl-9 pr-3 py-1.5 border rounded-md text-sm"
                     placeholder="Enter phone number"
                   />
                 </div>
               </div>
 
               {error && (
-                <div className="p-3 bg-red-100 text-red-700 rounded-md text-sm">
+                <div className="p-2 bg-red-100 text-red-700 rounded-md text-xs">
                   {error}
                 </div>
               )}
@@ -444,21 +446,21 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
               <button
                 type="submit"
                 disabled={isLoading || !selectedVehicle}
-                className="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
-                <CreditCard size={20} />
+                <CreditCard size={16} />
                 <span>{isLoading ? 'Processing...' : 'Pay and Reserve'}</span>
               </button>
             </form>
           </div>
 
           {/* Right Side - Bill Summary */}
-          <div className="bg-gray-50 p-6 rounded-lg space-y-6">
-            <div className="flex justify-between items-center pb-4 border-b">
-              <h3 className="text-lg font-semibold">Bill Summary</h3>
+          <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+            <div className="flex justify-between items-center pb-2 border-b">
+              <h3 className="text-base font-semibold">Bill Summary</h3>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Rate per hour</span>
                 <span className="font-medium">₹{baseRate.toFixed(2)}</span>
@@ -481,9 +483,9 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
               </div>
             </div>
 
-            <div className="pt-6 border-t">
-              <h4 className="font-medium mb-2">Booking Details</h4>
-              <div className="text-sm text-gray-600 space-y-1">
+            <div className="pt-3 border-t">
+              <h4 className="font-medium mb-2 text-sm">Booking Details</h4>
+              <div className="text-xs text-gray-600 space-y-0.5">
                 <p>Location: {location?.name || 'Selected Parking Space'}</p>
                 <p>Date: {new Date().toLocaleDateString()}</p>
                 <p className="text-sm text-gray-600">From: {bookingDateTime.startDateTime}</p>
@@ -492,11 +494,11 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
             </div>
 
             {/* Security Badge */}
-            <div className="flex items-center justify-center space-x-2 p-4 bg-white rounded-md">
-              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                <CreditCard className="text-gray-600" size={24} />
+            <div className="flex items-center justify-center space-x-2 p-3 bg-white rounded-md">
+              <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                <CreditCard className="text-gray-600" size={20} />
               </div>
-              <div className="text-sm">
+              <div className="text-xs">
                 <p className="font-medium">Secure Payment</p>
                 <p className="text-gray-500">Norton DigiCert Protected</p>
               </div>
