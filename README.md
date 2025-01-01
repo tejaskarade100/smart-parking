@@ -103,11 +103,3 @@ Ensure you have the following installed:
 ## 📜 License
 
 This project is licensed under the MIT License. See the `LICENSE` file for details.
-
----
-
-### 🙌 Contributions and Feedback
-
-We welcome contributions and suggestions! Feel free to open issues or create pull requests to improve the project.
-```
-
