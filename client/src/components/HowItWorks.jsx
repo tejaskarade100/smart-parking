@@ -61,12 +61,63 @@ function HowItWorks() {
     },
   };
 
+  const logoVariants = {
+    initial: { scale: 0.8, opacity: 0 },
+    animate: { 
+      scale: 1, 
+      opacity: 1,
+      transition: {
+        duration: 0.8,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  const textVariants = {
+    initial: { y: 20, opacity: 0 },
+    animate: (i) => ({
+      y: 0,
+      opacity: 1,
+      transition: {
+        delay: i * 0.1,
+        duration: 0.5,
+        ease: "easeOut"
+      }
+    })
+  };
+
   return (
-    <section className="py-24 bg-gray-50/50">
+    <section className="py-16 bg-gray-50/50">
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
-            How It Works
+          <motion.div
+            variants={logoVariants}
+            initial="initial"
+            animate="animate"
+            className="mb-8 inline-block"
+          >
+          </motion.div>
+          <h2 className="text-4xl font-bold mb-4">
+            <span className="text-gray-800">How </span>
+            <motion.span 
+              className="text-blue-600"
+              variants={textVariants}
+              initial="initial"
+              animate="animate"
+              custom={1}
+            >
+              PARK
+            </motion.span>
+            <motion.span 
+              className="text-blue-400"
+              variants={textVariants}
+              initial="initial"
+              animate="animate"
+              custom={2}
+            >
+              EASE
+            </motion.span>
+            <span className="text-gray-800"> Works</span>
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Experience hassle-free parking in three simple steps

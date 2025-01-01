@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
@@ -13,10 +13,16 @@ import AdminBookings from './pages/AdminBookings';
 import AboutUs from './pages/about-us';
 import OfflineBooking from './components/Admin/OfflineBooking';
 import AdminLayout from './components/Admin/AdminLayout';
+import SplashScreen from './components/SplashScreen';
 
 function App() {
   const { user, isAdmin } = useAuth();
   const [showProfile, setShowProfile] = React.useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+
+  if (showSplash) {
+    return <SplashScreen onFinished={() => setShowSplash(false)} />;
+  }
 
   const ProtectedAdminRoute = ({ children }) => {
     if (!user || !isAdmin) {
