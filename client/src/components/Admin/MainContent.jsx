@@ -8,6 +8,7 @@ import api from '../../api/axios';
 
 const MainContent = () => {
   const { user } = useAuth();
+  const [adminData, setAdminData] = useState(null);
   const [stats, setStats] = useState({
     totalSpaces: {
       twoWheeler: parseInt(user?.twoWheelerSpaces) || 0,
@@ -19,9 +20,22 @@ const MainContent = () => {
     },
     revenue: 0,
     activeBookings: [],
-    completedBookings: 0,
-    parkingRate: user?.spotRate || 0
+    completedBookings: 0
   });
+
+  const fetchAdminData = async () => {
+    try {
+      if (!user?._id) return;
+      const response = await api.get(`/admin/${user._id}`);
+      setAdminData(response.data);
+    } catch (error) {
+      console.error('Error fetching admin data:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAdminData();
+  }, [user?._id]);
 
   const fetchStats = async () => {
     try {
@@ -81,8 +95,7 @@ const MainContent = () => {
         },
         revenue: parseFloat(statsData.revenue) || 0,
         activeBookings: activeBookings,
-        completedBookings: completedBookings.length,
-        parkingRate: user?.spotRate || 0
+        completedBookings: completedBookings.length
       };
 
       console.log('Setting stats:', validatedStats);
@@ -99,6 +112,14 @@ const MainContent = () => {
 
     return () => clearInterval(interval);
   }, [user?.email]);
+
+  useEffect(() => {
+    // Update parking rate when user data changes
+    setStats(prevStats => ({
+      ...prevStats,
+      parkingRate: parseInt(user?.hourlyRate) || 0
+    }));
+  }, [user]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -170,9 +191,9 @@ const MainContent = () => {
         />
         <StatCard 
           title="Parking Rate" 
-          value={`₹${stats.parkingRate}/hr`}
+          value={`₹${adminData?.hourlyRate || 0}/hr`}
           icon={<Tag className="w-8 h-8 text-pink-500" />}
-          details={[{ label: "Current rate", value: `₹${stats.parkingRate}/hr` }]}
+          details={[{ label: "Current rate", value: `₹${adminData?.hourlyRate || 0}/hr` }]}
         />
       </motion.div>
 

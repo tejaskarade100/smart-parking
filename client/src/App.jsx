@@ -11,6 +11,8 @@ import ParkingAdminRegistrationForm from './pages/ParkingAdminRegistrationForm';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminBookings from './pages/AdminBookings';
 import AboutUs from './pages/about-us';
+import OfflineBooking from './components/Admin/OfflineBooking';
+import AdminLayout from './components/Admin/AdminLayout';
 
 function App() {
   const { user, isAdmin } = useAuth();
@@ -54,6 +56,16 @@ function App() {
               element={
                 <ProtectedAdminRoute>
                   <AdminBookings />
+                </ProtectedAdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/offline-booking" 
+              element={
+                <ProtectedAdminRoute>
+                  <AdminLayout>
+                    <OfflineBooking />
+                  </AdminLayout>
                 </ProtectedAdminRoute>
               } 
             />

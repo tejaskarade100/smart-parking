@@ -136,7 +136,8 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
         location: {
           name: location.name,
           address: location.address || '',
-          adminUsername: location.adminUsername || '',
+          adminUsername: location.adminEmail || location.adminUsername,
+          adminEmail: location.adminEmail,
           coordinates: location.coordinates,
           spotRate: parseFloat(location.spotRate)
         },
@@ -155,8 +156,40 @@ const BookNow = ({ onClose, location, bookingDateTime }) => {
       console.log('Booking response:', response.data);
 
       if (response.data && response.data._id) {
-        setBookingConfirmation(response.data);
-        navigate(`/booking-confirmation/${response.data._id}`);
+        try {
+          // Get admin username from location
+          const adminUsername = location.adminEmail || location.adminUsername;
+          
+          if (!adminUsername) {
+            console.error('Admin username/email not found in location data:', location);
+            throw new Error('Admin information missing');
+          }
+
+          // Update stats with the booking data
+          await api.post(`/admin/updateStats/${adminUsername}`, {
+            bookingId: response.data._id,
+            _id: response.data._id,
+            vehicleId: selectedVehicle,
+            userId: user._id,
+            vehicle: {
+              category: selectedVehicleDetails.category
+            },
+            vehicleType: selectedVehicleDetails.category,
+            total: total,
+            amount: total,
+            startDateTime: bookingDateTime.startDateTime,
+            endDateTime: bookingDateTime.endDateTime,
+            startTime: bookingDateTime.startDateTime,
+            endTime: bookingDateTime.endDateTime,
+            duration: duration
+          });
+
+          setBookingConfirmation(response.data);
+          navigate(`/booking-confirmation/${response.data._id}`);
+        } catch (statsError) {
+          console.error('Error updating stats:', statsError);
+          // Continue with booking confirmation even if stats update fails
+        }
       } else {
         throw new Error('Invalid response from server');
       }

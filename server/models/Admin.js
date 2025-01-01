@@ -186,6 +186,14 @@ adminSchema.methods.comparePassword = async function(candidatePassword) {
   }
 };
 
+// Add this to ensure hourlyRate is always included in the response
+adminSchema.set('toJSON', {
+  transform: function(doc, ret) {
+    ret.hourlyRate = ret.hourlyRate || 0;
+    return ret;
+  }
+});
+
 const Admin = mongoose.model('Admin', adminSchema);
 
 module.exports = Admin;

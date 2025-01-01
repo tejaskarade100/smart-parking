@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import AdminLayout from '../components/Admin/AdminLayout';
 import MainContent from '../components/Admin/MainContent';
 import { useAuth } from '../context/AuthContext';
+import api from '../api/axios';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -11,14 +12,26 @@ const AdminDashboard = () => {
   const { isAdmin } = useAuth();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    
-    if (!token || !user.isAdmin) {
-      navigate('/');
-      return;
-    }
-    setIsLoading(false);
+    const initializeDashboard = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token || !user.isAdmin) {
+          navigate('/');
+          return;
+        }
+
+        // Clean up stats when dashboard loads
+        await api.post(`/admin/cleanup-stats/${user._id}`);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error initializing dashboard:', error);
+        setIsLoading(false);
+      }
+    };
+
+    initializeDashboard();
   }, [navigate]);
 
   if (isLoading) {

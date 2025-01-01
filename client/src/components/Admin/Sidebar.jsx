@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Home, FileText, Settings, LogOut } from 'lucide-react';
+import { Home, FileText, Settings, LogOut, Plus } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
@@ -11,6 +11,7 @@ const Sidebar = () => {
   const menuItems = [
     { icon: Home, text: 'Dashboard', path: '/admin/dashboard' },
     { icon: FileText, text: 'Bookings', path: '/admin/bookings' },
+    { icon: Plus, text: 'Offline Booking', path: '/admin/offline-booking' },
     { icon: Settings, text: 'Settings', path: '/admin/settings' },
   ];
 

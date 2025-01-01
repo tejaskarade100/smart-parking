@@ -59,20 +59,27 @@ const BookingsList = () => {
           // Normalize vehicle type
           const vehicleType = booking.vehicleType?.toLowerCase().includes('four') ? 'four-wheeler' : 
                             booking.vehicleType?.toLowerCase().includes('two') ? 'two-wheeler' : 
-                            booking.vehicleType;
+                            booking.vehicleDetails?.category || booking.vehicleType;
           
           const status = endDateTime > now ? 'Active' : 'Completed';
-          console.log(`Booking ${booking._id}: EndTime=${endDateTime.toISOString()}, Status=${status}`);
           
-          return { ...booking, vehicleType, status };
+          return {
+            ...booking,
+            vehicleType,
+            status,
+            // Add offline booking details if it's an offline booking
+            vehicle: booking.vehicle || {
+              makeModel: booking.vehicleDetails?.makeModel || 'Offline Vehicle',
+              licensePlate: booking.vehicleDetails?.licensePlate || 'OFFLINE',
+              category: vehicleType
+            },
+            userName: booking.userName || booking.user?.name || 'Offline Customer'
+          };
         });
 
         // Get active and completed bookings
         const activeBookings = processedBookings.filter(b => b.status === 'Active');
         const completedBookings = processedBookings.filter(b => b.status === 'Completed');
-
-        console.log('Active bookings count:', activeBookings.length);
-        console.log('Completed bookings count:', completedBookings.length);
 
         // Update stats in MainContent
         const updateStats = async () => {
@@ -103,7 +110,6 @@ const BookingsList = () => {
 
     if (user?._id) {
       fetchBookings();
-      // Update every 10 seconds
       const interval = setInterval(fetchBookings, 10000);
       return () => clearInterval(interval);
     }
@@ -213,13 +219,20 @@ const BookingsList = () => {
               {/* Status */}
               <div className="flex items-start space-x-3">
                 <Calendar className="w-5 h-5 text-gray-500 mt-1" />
-                <div>
-                  <p className="text-sm text-gray-600">Status</p>
-                  <p className={`font-medium ${
-                    booking.status === 'Completed' ? 'text-red-500' : 'text-green-500'
-                  }`}>
-                    {booking.status}
-                  </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-gray-600">Status:</span>
+                    <span className={`font-medium ${
+                      booking.status === 'Completed' ? 'text-red-500' : 'text-green-500'
+                    }`}>
+                      {booking.status}
+                    </span>
+                  </div>
+                  {booking.isOffline && (
+                    <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                      Offline Booking
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

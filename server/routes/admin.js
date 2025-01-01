@@ -332,4 +332,180 @@ router.get('/admin-bookings/:adminId', async (req, res) => {
   }
 });
 
+// Add this route handler
+router.post('/offline-booking', async (req, res) => {
+  try {
+    const {
+      vehicleType,
+      duration,
+      date,
+      startDateTime,
+      endDateTime,
+      adminId,
+      adminEmail,
+      parkingName,
+      parkingAddress,
+      spotRate,
+      total,
+      isOffline,
+      status,
+      vehicleDetails
+    } = req.body;
+
+    // Find the admin
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+
+    // Create new booking with all required fields
+    const booking = new Booking({
+      date: new Date(date),
+      startDateTime: new Date(startDateTime),
+      endDateTime: new Date(endDateTime),
+      duration: parseInt(duration),
+      admin: adminId,
+      user: adminId,
+      vehicle: adminId,
+      vehicleDetails: {
+        category: vehicleType,
+        makeModel: 'Offline Vehicle',
+        licensePlate: 'OFFLINE'
+      },
+      location: {
+        name: parkingName,
+        address: parkingAddress,
+        adminEmail,
+        adminUsername: admin.username
+      },
+      spotRate: admin.hourlyRate,
+      total: admin.hourlyRate * parseInt(duration),
+      isOffline: true,
+      status: 'Active',
+      userName: 'Offline Customer'
+    });
+
+    const savedBooking = await booking.save();
+    console.log('Saved booking:', savedBooking);
+
+    // Update stats with proper activeBooking data
+    const stats = await Stats.findOne({ admin: adminId });
+    if (stats) {
+      stats.activeBookings.push({
+        bookingId: savedBooking._id.toString(),
+        vehicleId: savedBooking.vehicle,
+        userId: savedBooking.user,
+        vehicleType: vehicleType,
+        amount: savedBooking.total,
+        startTime: new Date(startDateTime),
+        endTime: new Date(endDateTime),
+        duration: parseInt(duration)
+      });
+
+      stats.revenue += savedBooking.total;
+      const spaceType = vehicleType === 'two-wheeler' ? 'twoWheeler' : 'fourWheeler';
+      stats.availableSpaces[spaceType] = Math.max(0, stats.availableSpaces[spaceType] - 1);
+
+      await stats.save();
+    }
+
+    // Create response object with properly formatted dates
+    const responseData = {
+      ...savedBooking.toObject(),
+      _id: savedBooking._id.toString(),
+      bookingId: savedBooking._id.toString(),
+      date: savedBooking.date?.toISOString(),
+      startDateTime: savedBooking.startDateTime?.toISOString(),
+      endDateTime: savedBooking.endDateTime?.toISOString(),
+      total: admin.hourlyRate * parseInt(duration)
+    };
+
+    res.status(201).json(responseData);
+  } catch (error) {
+    console.error('Error creating offline booking:', error);
+    res.status(500).json({ message: error.message || 'Failed to create booking' });
+  }
+});
+
+// Add this route to get admin data
+router.get('/:adminId', async (req, res) => {
+  try {
+    const admin = await Admin.findById(req.params.adminId);
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+    res.json(admin);
+  } catch (error) {
+    console.error('Error fetching admin:', error);
+    res.status(500).json({ message: 'Error fetching admin data' });
+  }
+});
+
+// Update the cleanup route
+router.post('/cleanup-stats/:adminId', async (req, res) => {
+  try {
+    // First, do a complete cleanup
+    const cleanedStats = await Stats.cleanupAndInitialize(req.params.adminId);
+    if (!cleanedStats) {
+      return res.status(404).json({ message: 'Stats not found' });
+    }
+
+    // Get all active bookings for this admin
+    const admin = await Admin.findById(req.params.adminId);
+    if (!admin) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+
+    // Get all active bookings
+    const activeBookings = await Booking.find({
+      admin: admin._id,
+      status: 'Active'
+    });
+
+    // Re-add all valid active bookings
+    for (const booking of activeBookings) {
+      cleanedStats.activeBookings.push({
+        bookingId: booking._id.toString(),
+        vehicleId: booking.vehicle,
+        userId: booking.user,
+        vehicleType: booking.vehicleDetails?.category || 'four-wheeler',
+        amount: booking.total,
+        startTime: booking.startDateTime,
+        endTime: booking.endDateTime,
+        duration: booking.duration,
+        isOffline: booking.isOffline || false
+      });
+
+      // Update revenue
+      cleanedStats.revenue += booking.total;
+    }
+
+    await cleanedStats.save();
+    res.json({ message: 'Stats cleaned up and reinitialized successfully' });
+  } catch (error) {
+    console.error('Error cleaning up stats:', error);
+    res.status(500).json({ message: 'Error cleaning up stats: ' + error.message });
+  }
+});
+
+// Update the updateStats route
+router.post('/updateStats/:adminUsername', async (req, res) => {
+  try {
+    const { adminUsername } = req.params;
+    const bookingData = req.body;
+
+    console.log('Updating stats for admin:', adminUsername);
+
+    const stats = await Stats.updateOnBooking(adminUsername, bookingData);
+    res.json(stats);
+  } catch (error) {
+    console.error('Error updating stats:', error);
+    res.status(500).json({ 
+      message: 'Error updating stats: ' + error.message,
+      details: error.errors || error,
+      adminUsername: req.params.adminUsername // Include this for debugging
+    });
+  }
+});
+
 module.exports = router;
