@@ -10,35 +10,57 @@ import axios from 'axios';
 // Function to fetch real parking spots from admins
 const fetchParkingSpots = async (location = 'Pune') => {
   try {
-    // First get coordinates for the searched location
-    const geoResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`);
-    const geoData = await geoResponse.json();
+    // First get coordinates for the searched city
+    const cityGeoResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`);
+    const cityGeoData = await cityGeoResponse.json();
     
-    if (geoData && geoData[0]) {
-      const { lat, lon } = geoData[0];
-      
+    if (cityGeoData && cityGeoData[0]) {
       // Fetch parking spots from our backend
       const response = await axios.get(`/api/admin/parking-spots?location=${encodeURIComponent(location)}`);
       const adminSpots = response.data;
       
-      // Transform admin data to match our parking spot format
-      return adminSpots.map(spot => ({
-        name: spot.parkingName,
-        adminId: spot._id,
-        adminUsername: spot.username, // Changed from adminName to adminUsername
-        lat: spot.latitude || parseFloat(lat), // Use admin's lat or center location
-        lng: spot.longitude || parseFloat(lon), // Use admin's lng or center location
-        spotRate: spot.hourlyRate,
-        price: `₹${spot.hourlyRate}/hr`,
-        facilities: spot.facilities || ["Covered Parking", "24/7 Security"],
-        address: spot.parkingAddress,
-        city: spot.city,
-        state: spot.state,
-        parkingType: spot.parkingType,
-        category: spot.category,
-        twoWheelerSpaces: spot.twoWheelerSpaces,
-        fourWheelerSpaces: spot.fourWheelerSpaces
+      // Get coordinates for each parking spot's address
+      const spotsWithCoordinates = await Promise.all(adminSpots.map(async (spot) => {
+        try {
+          // Construct full address for more accurate geocoding
+          const fullAddress = `${spot.parkingAddress}, ${spot.city}, ${spot.state}`;
+          const spotGeoResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}`);
+          const spotGeoData = await spotGeoResponse.json();
+          
+          // Use spot's specific coordinates if found, otherwise use city coordinates
+          const coordinates = spotGeoData?.[0] ? {
+            lat: parseFloat(spotGeoData[0].lat),
+            lng: parseFloat(spotGeoData[0].lon)
+          } : {
+            lat: parseFloat(cityGeoData[0].lat),
+            lng: parseFloat(cityGeoData[0].lon)
+          };
+
+          return {
+            name: spot.parkingName,
+            adminId: spot._id,
+            adminUsername: spot.username,
+            lat: coordinates.lat,
+            lng: coordinates.lng,
+            spotRate: spot.hourlyRate,
+            price: `₹${spot.hourlyRate}/hr`,
+            facilities: spot.facilities || ["Covered Parking", "24/7 Security"],
+            address: spot.parkingAddress,
+            city: spot.city,
+            state: spot.state,
+            parkingType: spot.parkingType,
+            category: spot.category,
+            twoWheelerSpaces: spot.twoWheelerSpaces,
+            fourWheelerSpaces: spot.fourWheelerSpaces
+          };
+        } catch (error) {
+          console.error('Error geocoding parking spot:', error);
+          return null;
+        }
       }));
+
+      // Filter out any spots that failed to geocode
+      return spotsWithCoordinates.filter(spot => spot !== null);
     }
     return [];
   } catch (error) {
