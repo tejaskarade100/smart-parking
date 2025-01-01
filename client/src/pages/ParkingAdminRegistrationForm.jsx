@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
@@ -24,6 +24,10 @@ const ParkingAdminRegistrationForm = () => {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -117,11 +121,11 @@ const ParkingAdminRegistrationForm = () => {
   const CurrentStep = steps[currentStep - 1].component;
   
   return (
-    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gray-100 pt-20 pb-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
         {/* Progress Steps */}
-        <nav className="mb-8">
-          <ol className="flex items-center justify-center space-x-4">
+        <nav className="mb-6">
+          <ol className="flex items-center justify-between max-w-3xl mx-auto">
             {steps.map((step) => (
               <li
                 key={step.id}
@@ -129,20 +133,24 @@ const ParkingAdminRegistrationForm = () => {
                   currentStep === step.id ? "text-indigo-600" : "text-gray-500"
                 }`}
               >
-                <span
-                  className={`w-8 h-8 flex items-center justify-center rounded-full ${
-                    currentStep === step.id
-                      ? "bg-indigo-600 text-white"
-                      : currentStep > step.id
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-200"
-                  }`}
-                >
-                  {currentStep > step.id ? "✓" : step.id}
-                </span>
-                <span className="ml-2 text-sm font-medium">{step.name}</span>
+                <div className="flex flex-col items-center">
+                  <span
+                    className={`w-8 h-8 flex items-center justify-center rounded-full mb-1 ${
+                      currentStep === step.id
+                        ? "bg-indigo-600 text-white"
+                        : currentStep > step.id
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-200"
+                    }`}
+                  >
+                    {currentStep > step.id ? "✓" : step.id}
+                  </span>
+                  <span className="text-xs font-medium text-center whitespace-nowrap">
+                    {step.name}
+                  </span>
+                </div>
                 {step.id !== steps.length && (
-                  <span className="ml-4 text-gray-300">/</span>
+                  <div className="flex-1 h-px bg-gray-300 mx-2 relative top-[-10px]"></div>
                 )}
               </li>
             ))}
@@ -150,7 +158,7 @@ const ParkingAdminRegistrationForm = () => {
         </nav>
 
         {/* Form */}
-        <div className="bg-white shadow rounded-lg">
+        <div className="bg-white shadow rounded-lg max-w-3xl mx-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
@@ -158,30 +166,32 @@ const ParkingAdminRegistrationForm = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
-              className="p-8"
+              className="p-6"
             >
               {showSuccessPopup ? (
                 <div className="text-center">
                   <h2 className="text-2xl font-bold text-green-600 mb-4">Registration Successful!</h2>
-                  <p className="text-gray-600 mb-8">Your parking admin account has been created successfully. You can now access your dashboard.</p>
+                  <p className="text-gray-600 mb-8">Your parking admin account has been created successfully. You can now login to your admindashboard.</p>
                   <button
                     onClick={handleDashboardAccess}
                     className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
-                    Access Dashboard
+                    LOGIN AS ADMIN
                   </button>
                 </div>
               ) : (
                 <React.Fragment>
-                  <CurrentStep
-                    formData={formData}
-                    handleChange={handleChange}
-                    onSubmit={currentStep === steps.length ? handleSubmit : undefined}
-                  />
-                  {error && (
-                    <div className="mt-4 text-red-600 text-sm">{error}</div>
-                  )}
-                  <div className="mt-8 flex justify-between">
+                  <div className="max-h-[calc(100vh-16rem)] overflow-y-auto">
+                    <CurrentStep
+                      formData={formData}
+                      handleChange={handleChange}
+                      onSubmit={currentStep === steps.length ? handleSubmit : undefined}
+                    />
+                    {error && (
+                      <div className="mt-4 text-red-600 text-sm">{error}</div>
+                    )}
+                  </div>
+                  <div className="mt-6 flex justify-between border-t pt-4">
                     {currentStep > 1 && (
                       <button
                         onClick={handlePrevious}
