@@ -55,19 +55,36 @@ const Profile = ({ onClose }) => {
       
       // Process bookings to add status based on end time
       const processedBookings = response.data.map(booking => {
-        const endTime = booking.endDateTime 
-          ? new Date(booking.endDateTime)
-          : new Date(booking.startDateTime).setHours(
-              new Date(booking.startDateTime).getHours() + booking.duration
-            );
+        // Get the end time from either endDateTime or calculate from date and duration
+        let endTime;
+        if (booking.endDateTime) {
+          endTime = new Date(booking.endDateTime);
+        } else if (booking.date && booking.duration) {
+          // Calculate end time from start date and duration
+          endTime = new Date(booking.date);
+          endTime.setHours(endTime.getHours() + booking.duration);
+        } else {
+          // If no end time info, default to active
+          return { 
+            ...booking, 
+            status: 'Active',
+            location: booking.location || {},
+            vehicle: booking.vehicle || {},
+            total: booking.total || 0,
+            duration: booking.duration || 0,
+            bookingReference: booking.bookingReference || 'N/A'
+          };
+        }
 
         const now = new Date();
-        const status = new Date(endTime) < now ? 'Completed' : 'Active';
+        console.log('Booking end time:', endTime);
+        console.log('Current time:', now);
+        const status = endTime < now ? 'Completed' : 'Active';
+        console.log('Calculated status:', status);
         
         return { 
           ...booking, 
           status,
-          // Ensure these fields exist to prevent undefined errors
           location: booking.location || {},
           vehicle: booking.vehicle || {},
           total: booking.total || 0,
@@ -500,7 +517,7 @@ const Profile = ({ onClose }) => {
                                 booking.status === 'Active'
                                   ? 'bg-green-100 text-green-800'
                                   : booking.status === 'Completed'
-                                  ? 'bg-blue-100 text-blue-800'
+                                  ? 'bg-red-100 text-red-800'
                                   : 'bg-gray-100 text-gray-800'
                               }`}
                             >
