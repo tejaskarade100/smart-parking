@@ -81,66 +81,85 @@
     │           ├── ParkingAdminRegistrationForm.jsx
     │           ├── ParkingCategoriesPage.jsx
     │           └── about-us.jsx
+    │──server/
+        ├── index.js
+        ├── package-lock.json
+        ├── package.json
+        ├── server.js
+        ├── .env.sample
+        ├── .gitignore
+        ├── config/
+        │   └── db.js
+        ├── controllers/
+        │   └── authController.js
+        ├── middleware/
+        │   ├── auth.js
+        │   └── authMiddleware.js
+        ├── models/
+        │   ├── Admin.js
+        │   ├── Booking.js
+        │   ├── Stats.js
+        │   ├── User.js
+        │   └── Vehicle.js
+        └── routes/
+            ├── admin.js
+            ├── auth.js
+            ├── authRoutes.js
+            └── user.js
 ```
 ---
 
 ## App Directory (Parking_App)
 ```
-└── parking_app/
-    ├── README.md
-    ├── analysis_options.yaml
-    ├── pubspec.lock
-    ├── pubspec.yaml
-    ├── .gitignore
-    ├── .metadata
-    ├── android/
-    │   ├── gradle.properties
-    │   ├── app/
-    │   │   └── src/
-    │   │       ├── debug/
-    │   │       │   └── AndroidManifest.xml
-    │   │       ├── main/
-    │   │       │   ├── AndroidManifest.xml
-    │   │       │   ├── kotlin/
-    │   │       │   │   └── com/
-    │   │       │   │       └── example/
-    │   │       │   │           └── parking_app/
-    │   │       │   │               └── MainActivity.kt
-    │   │       │   └── res/
-    │   │           ├── drawable/
-    │   │           │   └── launch_background.xml
-    │   │           └── values/
-    │   │               └── styles.xml
-    │   └── gradle/
-    │       └── wrapper/
-    │           └── gradle-wrapper.properties
-    ├── ios/
-    │   ├── Runner/
-    │   │   ├── AppDelegate.swift
-    │   │   ├── Info.plist
-    │   │   ├── Assets.xcassets/
-    │   │   │   └── AppIcon.appiconset/
-    │   │   │       └── Contents.json
-    │   │   └── Base.lproj/
-    │   │       ├── LaunchScreen.storyboard
-    │   │       └── Main.storyboard
-    ├── lib/
-    │   ├── main.dart
-    │   ├── data/
-    │   │   ├── categories.dart
-    │   │   └── dummy_data.dart
-    │   ├── models/
-    │   │   ├── booking.dart
-    │   │   └── user.dart
-    │   ├── screens/
-    │   │   ├── admin_dashboard_screen.dart
-    │   │   ├── booking_form_screen.dart
-    │   │   └── splash_screen.dart
-    │   ├── services/
-    │   │   ├── auth_service.dart
-    │   │   └── booking_service.dart
-    │   └── widgets/
-    │       ├── category_card.dart
-    │       ├── custom_button.dart
-    │       └── parking_spot_card.dart
+ ├── parking_app/
+    │   ├── README.md
+    │   ├── analysis_options.yaml
+    │   ├── pubspec.lock
+    │   ├── pubspec.yaml
+    │   ├── .gitignore
+    │   ├── .metadata
+    │   ├── android/
+    │   ├── ios/
+    │   ├── lib/
+    │   │   ├── main.dart
+    │   │   ├── data/
+    │   │   │   ├── categories.dart
+    │   │   │   └── dummy_data.dart
+    │   │   ├── models/
+    │   │   │   ├── booking.dart
+    │   │   │   ├── category_model.dart
+    │   │   │   ├── parking_spot.dart
+    │   │   │   └── user.dart
+    │   │   ├── screens/
+    │   │   │   ├── admin_dashboard_screen.dart
+    │   │   │   ├── admin_registration_screen.dart
+    │   │   │   ├── booking_confirmation_screen.dart
+    │   │   │   ├── booking_form_screen.dart
+    │   │   │   ├── booking_screen.dart
+    │   │   │   ├── home_screen.dart
+    │   │   │   ├── login_screen.dart
+    │   │   │   ├── map_screen.dart
+    │   │   │   ├── parking_category_screen.dart
+    │   │   │   ├── splash_screen.dart
+    │   │   │   ├── user_dashboard.dart
+    │   │   │   ├── user_dashboard_screen.dart
+    │   │   │   └── user_registration_screen.dart
+    │   │   ├── services/
+    │   │   │   ├── auth_service.dart
+    │   │   │   └── booking_service.dart
+    │   │   └── widgets/
+    │   │       ├── category_card.dart
+    │   │       ├── custom_button.dart
+    │   │       ├── detail_modal.dart
+    │   │       ├── footer.dart
+    │   │       ├── header.dart
+    │   │       └── parking_spot_card.dart
+    │   ├── linux/
+    │   ├── macos/
+    │   ├── test/
+    │   ├── web/
+    │   └── windows/
+   
+
+
 ```
