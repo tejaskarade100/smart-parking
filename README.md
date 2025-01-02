@@ -1,105 +1,168 @@
-# Smart Parking 
+# Park-Ease : Smart Parking Solution
 
-A modern and user-friendly smart parking solution designed to simplify the process of finding and booking parking spaces. With a seamless interface, real-time availability, and convenient booking options, our platform ensures a hassle-free experience for drivers while enabling parking space owners to efficiently manage their listings.
+## 🔎 Overview
 
----
+**Parkease** is a modern, user-friendly smart parking solution that simplifies the process of finding and booking parking spaces. It provides real-time availability, location details, and convenient booking options, ensuring a hassle-free experience for drivers. Parking space owners can efficiently manage their listings via the platform, making parking smarter for everyone.
 
-## 📝 Description
+## :sparkles: Features
 
-This Smart Parking Website allows users to:
-- Browse and book parking spaces in their area.
-- View real-time parking availability and location details.
-- Manage bookings and view confirmations effortlessly.
-- Ensure secure user authentication and a smooth user experience.
+### For Users
+- 🔍 Real-time parking spot search and availability
+- 📱 QR-based spot access and verification
+- 💳 Secure online payments
+- 🎫 Digital parking tickets
+- 📍 GPS-based nearby parking locations
+- 📅 Advance booking capability
+- 📱 Cross-platform mobile app support
 
----
+### For Parking Owners
+- 📊 Dashboard for spot management
+- 💰 Revenue tracking and analytics
+- 🔄 Real-time booking updates
+- 👥 User management system
+- 📈 Occupancy statistics
 
-## 🛠️ Technologies Used
 
-### Frontend:
-- **React**: For building an interactive user interface.
-- **Vite**: To streamline the development process.
-- **Tailwind CSS**: For styling and responsiveness.
-- **Axios**: To handle API requests.
+## 🛠️ Tech Stack
+### Website (Client & Server)
+- **Frontend**: React, Vite, Tailwind CSS, JSX
+- **Backend**: Node.js, Express.js, MongoDB
+- **Database**: MongoDB
+- **Authentication**: JWT, OAuth
 
-### Backend:
-- **Node.js**: For a scalable server-side environment.
-- **Express.js**: For routing and middleware.
-- **MongoDB**: To store user, booking, and parking space data.
-- **JWT Authentication**: For secure user authentication.
-- **Mongoose**: For database modeling.
+### App (Mobile)
+- **Frontend**: Flutter (Dart)
+- **Backend**: Firebase
 
----
 
-## ✨ Features
-
-- **User-Friendly Interface**: Simple and intuitive design for an enhanced user experience.
-- **Real-Time Parking Availability**: Accurate and up-to-date parking space details.
-- **Secure Authentication**: User accounts with protected login and booking details.
-- **Efficient Booking System**: Confirm bookings with instant feedback.
-- **Parking Owner Dashboard**: Manage parking spaces, availability, and bookings efficiently.
-
----
-
-## 🚀 Getting Started
+## ⚙️ Installation & Setup
 
 ### Prerequisites
-Ensure you have the following installed:
-- **Node.js** (v14+ recommended)
-- **npm** or **yarn**
-- **MongoDB**
+- Node.js (v16+)
+- MongoDB
+- Flutter SDK
+- Android Studio / Xcode
 
-### Steps to Run Locally
+## :gear: Steps to Run Locally
 
+### Website (Client)
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/tejaskarade100/smart-parking.git
-   cd tejaskarade100-smart-parking
-   ```
+    ```bash
+    git clone https://github.com/tejaskarade100/smart-parking.git
+    cd parkase
+    ```
+2. Navigate to the `client` folder:
+    ```bash
+    cd client
+    ```
+3. Install dependencies :
+    ```bash
+    npm install
+    ```
+    (use npm legacy peers if dependencies fail to install)
 
-2. Install dependencies for both client and server:
-   ```bash
-   # For Client
-   cd client
-   npm install
+    ```bash
+    npm install --legacy-peer-deps
+    ```
+4. Run the client:
+    ```bash
+    npm run dev
+    ```
 
-   # For Server
-   cd ../server
-   npm install
-   ```
+### Website (Server)
+1. Navigate to the `server` folder:
+    ```bash
+    cd server
+    ```
+2. Install dependencies:
+    ```bash
+    npm install
+    ```
+3. Run the server:
+    ```bash
+    npm run dev
+    ```
 
-3. Set up environment variables:
-   - Create a `.env` file in the `server` directory with the following variables:
-     ```env
-     PORT=5000
-     MONGO_URI=your_mongodb_connection_string
-     JWT_SECRET=your_jwt_secret
-     ```
-
-4. Start the application:
-   ```bash
-   # Start the server
-   cd server
-   npm start
-
-   # Start the client
-   cd ../client
-   npm run dev
-   ```
-
-5. Access the application in your browser:
-   - Frontend: `http://localhost:5173`
-   - Backend: `http://localhost:5000`
+### App (Mobile : Frontend only)
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/tejaskarade100/smart-parking.git
+    cd parkase
+    ```
+2. Navigate to the `parking_app` folder:
+    ```bash
+    cd parking_app
+    ```
+3. Install Flutter dependencies:
+    ```bash
+    flutter pub get
+    ```
+4. Run the app:
+    ```bash
+    flutter run
+    ```
 
 ---
 
-## 👥 Contributors
+## :file_folder: Sample `.env` File Structure
 
-- [Tejas Karade](https://github.com/tejaskarade100)
-- [Jayesh Lambdade](https://github.com/JayeshL07)
+```env
+# MongoDB Connection (Local or Online)
+MONGODB_URI=mongodb://localhost:27017/parkase
+DB_NAME=parkase
+
+# JWT Secret for Authentication
+JWT_SECRET=your_jwt_secret
+
+PORT=5000
+```
 
 ---
 
-## 📜 License
+## 💾 MongoDB Setup
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+### Local Setup
+1. Install MongoDB Community Server
+2. Start MongoDB service
+3. Use connection string: mongodb://localhost:27017/parkease
+
+### OR
+
+### Cloud Setup (MongoDB Atlas)
+1. Create cluster
+2. Get connection string
+3. Add to .env file
+
+---
+
+## 📸 Demo Screenshots
+
+### Home Page
+![Home Page](https://drive.google.com/file/d/1kA5R3xJ_Q-LMXp5h356hd4lmJIM9VCUv/view?usp=sharing)
+
+### User Dashboard
+![Dashboard](link_to_dashboard_screenshot)
+
+### Booking Interface
+![Booking](link_to_booking_screenshot)
+
+### Booking Confirmation
+![Confirmation](link_to_confirmation_screenshot)
+
+### Admin Dashboard
+![Admin Dashboard](link_to_admin_dashboard_screenshot)
+
+---
+
+## Contributors 🤝
+
+- [Jayesh Lambdade](https://github.com/JayeshL07) (@JayeshL07)
+- [Tejas Karade](https://github.com/tejaskarade100) (@tejaskarade100)
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
