@@ -138,19 +138,19 @@ PORT=5000
 ## 📸 Demo Screenshots
 
 ### Home Page
-![Home Page](https://drive.google.com/file/d/1kA5R3xJ_Q-LMXp5h356hd4lmJIM9VCUv/view?usp=sharing)
+![Home Page](client/public/demo/1.png)
 
 ### User Dashboard
-![Dashboard](link_to_dashboard_screenshot)
+![User Dashboard](client/public/demo/2.png)
 
 ### Booking Interface
-![Booking](link_to_booking_screenshot)
+![Booking](client/public/demo/3.png)
 
 ### Booking Confirmation
-![Confirmation](link_to_confirmation_screenshot)
+![Confirmation](client/public/demo/4.png)
 
 ### Admin Dashboard
-![Admin Dashboard](link_to_admin_dashboard_screenshot)
+![Admin Dashboard](client/public/demo/10.png)
 
 ---
 
