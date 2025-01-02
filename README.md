@@ -158,32 +158,18 @@ PORT=5000
 
 ## App Screenshots
 
-<!-- First Row: 3 images with spacing -->
-<kbd><img src="client/public/demo/11.jpg" width="250" style="border-radius: 15px"/></kbd> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<kbd><img src="client/public/demo/12.jpg" width="250" style="border-radius: 15px"/></kbd> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<kbd><img src="client/public/demo/13.jpg" width="250" style="border-radius: 15px"/></kbd>
-
-<p>
-<!--   <strong>Home Page</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -->
-<!--   <strong>User Dashboard</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -->
-<!--   <strong>Booking Interface</strong> -->
+<p align="center">
+  <img src="client/public/demo/11.jpg" width="25%" style="margin:20px" alt="Home Page"/>
+  <img src="client/public/demo/12.jpg" width="25%" style="margin:20px" alt="User Dashboard"/>
+  <img src="client/public/demo/13.jpg" width="25%" style="margin:20px" alt="Booking Interface"/>
 </p>
 
-<br><br>
-
-<!-- Second Row: 2 images with offset -->
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<kbd><img src="client/public/demo/14.jpg" width="250" style="border-radius: 15px"/></kbd> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<kbd><img src="client/public/demo/15.jpg" width="250" style="border-radius: 15px"/></kbd>
-
-<p>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<!--   <strong>Booking Confirmation</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -->
-<!--   <strong>Admin Dashboard</strong> -->
+<p align="center" style="margin-top:50px">
+  <img src="client/public/demo/14.jpg" width="25%" style="margin:20px" alt="Booking Confirmation"/>
+  <img src="client/public/demo/15.jpg" width="25%" style="margin:20px" alt="Admin Dashboard"/>
 </p>
 
 </div>
-
 ---
 
 ## Contributors 🤝
