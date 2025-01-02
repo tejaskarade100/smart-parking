@@ -20,14 +20,6 @@ const DetailModal = ({ category, onClose }) => {
         >
           {/* Header */}
           <div className="relative bg-gradient-to-r from-blue-600 to-blue-700 p-6 pb-8">
-            <motion.button 
-              onClick={onClose} 
-              className="absolute top-4 right-4 text-white/80 hover:text-white transition-colors"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <X className="w-6 h-6" />
-            </motion.button>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
