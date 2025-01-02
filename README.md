@@ -10,7 +10,7 @@
 
 ### For Users
 - 🔍 Browse and Book Parking Spaces: Easily find and reserve parking spots in your area.
-- 📍 View Real-time Parking Availability: Access up-to-date information on available parking spots and their locations.
+- 📍 View Real-time Parking Availability: Access real-time information about parking.
 - 🎫 QR-based Spot Access and Verification: Use QR codes for seamless entry and exit from parking facilities.
 - 💳 Secure Online Payments: Make payments securely through the platform.
 - 📅 Manage Bookings: View, modify, and receive instant confirmations for your bookings.
