@@ -4,6 +4,8 @@
 
 **Parkease** is a modern, user-friendly smart parking solution that simplifies the process of finding and booking parking spaces. It provides real-time availability, location details, and convenient booking options, ensuring a hassle-free experience for drivers. Parking space owners can efficiently manage their listings via the platform, making parking smarter for everyone.
 
+---
+
 ## :sparkles: Features
 
 ### For Users
@@ -22,18 +24,19 @@
 - 👥 User management system
 - 📈 Occupancy statistics
 
+---
 
 ## 🛠️ Tech Stack
 ### Website (Client & Server)
-- **Frontend**: React, Vite, Tailwind CSS, JSX
-- **Backend**: Node.js, Express.js, MongoDB
+- **Frontend**: React+Vite, Tailwind CSS, Leaflet Map
+- **Backend**: Node.js, Express.js
 - **Database**: MongoDB
-- **Authentication**: JWT, OAuth
+- **Authentication**: JWT
 
 ### App (Mobile)
-- **Frontend**: Flutter (Dart)
-- **Backend**: Firebase
+- **Framework**: Flutter (Dart)
 
+---
 
 ## ⚙️ Installation & Setup
 
@@ -41,7 +44,7 @@
 - Node.js (v16+)
 - MongoDB
 - Flutter SDK
-- Android Studio / Xcode
+- IDE, eg VS Code
 
 ## :gear: Steps to Run Locally
 
@@ -164,5 +167,3 @@ PORT=5000
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
