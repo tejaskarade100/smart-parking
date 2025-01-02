@@ -2,27 +2,26 @@
 
 ## 🔎 Overview
 
-**Parkease** is a modern, user-friendly smart parking solution that simplifies the process of finding and booking parking spaces. It provides real-time availability, location details, and convenient booking options, ensuring a hassle-free experience for drivers. Parking space owners can efficiently manage their listings via the platform, making parking smarter for everyone.
+**Parkease** is a smart parking solution that streamlines the process of finding, booking, and managing parking spaces. It provides real-time parking availability, location details, easy booking options, and secure payments for users, while offering parking space owners efficient tools to manage listings and track bookings.
 
 ---
 
 ## :sparkles: Features
 
 ### For Users
-- 🔍 Real-time parking spot search and availability
-- 📱 QR-based spot access and verification
-- 💳 Secure online payments
-- 🎫 Digital parking tickets
-- 📍 GPS-based nearby parking locations
-- 📅 Advance booking capability
-- 📱 Cross-platform mobile app support
+- 🔍 Browse and Book Parking Spaces: Easily find and reserve parking spots in your area.
+- 📍 View Real-time Parking Availability: Access up-to-date information on available parking spots and their locations.
+- 🎫 QR-based Spot Access and Verification: Use QR codes for seamless entry and exit from parking facilities.
+- 💳 Secure Online Payments: Make payments securely through the platform.
+- 📅 Manage Bookings: View, modify, and receive instant confirmations for your bookings.
+- 📱 Mobile App for On-the-go Access: Use the mobile app to find and book parking spots conveniently.
 
 ### For Parking Owners
-- 📊 Dashboard for spot management
-- 💰 Revenue tracking and analytics
-- 🔄 Real-time booking updates
-- 👥 User management system
-- 📈 Occupancy statistics
+- 📊 Admin Dashboard: Manage parking listings, monitor bookings, and access real-time data.
+- 🔄 Real-time Booking Updates: Stay informed with live updates on bookings and cancellations.
+- 📈 Occupancy Statistics: Analyze parking space usage to optimize operations.
+- 💰 Revenue Tracking and Analytics: Monitor earnings and analyze financial performance.
+- ⛓️‍💥 Offline Booking for Walk-in Customers: Facilitate bookings for customers who arrive without prior reservations.
 
 ---
 
@@ -33,7 +32,7 @@
 - **Database**: MongoDB
 - **Authentication**: JWT
 
-### App (Mobile)
+### Mobile App (Frontend)
 - **Framework**: Flutter (Dart)
 
 ---
@@ -154,6 +153,36 @@ PORT=5000
 
 ### Admin Dashboard
 ![Admin Dashboard](client/public/demo/10.png)
+
+<div align="center">
+
+## App Screenshots
+
+<!-- First Row: 3 images with spacing -->
+<kbd><img src="client/public/demo/11.jpg" width="250" style="border-radius: 15px"/></kbd> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<kbd><img src="client/public/demo/12.jpg" width="250" style="border-radius: 15px"/></kbd> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<kbd><img src="client/public/demo/13.jpg" width="250" style="border-radius: 15px"/></kbd>
+
+<p>
+  <strong>Home Page</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <strong>User Dashboard</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <strong>Booking Interface</strong>
+</p>
+
+<br><br>
+
+<!-- Second Row: 2 images with offset -->
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<kbd><img src="client/public/demo/14.jpg" width="250" style="border-radius: 15px"/></kbd> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<kbd><img src="client/public/demo/15.jpg" width="250" style="border-radius: 15px"/></kbd>
+
+<p>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <strong>Booking Confirmation</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <strong>Admin Dashboard</strong>
+</p>
+
+</div>
 
 ---
 
