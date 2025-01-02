@@ -3,6 +3,7 @@
 ---
 
 ## Website Directory (Client and Server)
+```
 └── tejaskarade100-smart-parking/
     ├── README.md
     ├── client/
@@ -80,10 +81,11 @@
     │           ├── ParkingAdminRegistrationForm.jsx
     │           ├── ParkingCategoriesPage.jsx
     │           └── about-us.jsx
-
+```
 ---
 
 ## App Directory (Parking_App)
+```
 └── parking_app/
     ├── README.md
     ├── analysis_options.yaml
@@ -141,3 +143,4 @@
     │       ├── category_card.dart
     │       ├── custom_button.dart
     │       └── parking_spot_card.dart
+```
