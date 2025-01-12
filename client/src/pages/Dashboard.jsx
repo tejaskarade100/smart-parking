@@ -5,6 +5,7 @@ import ParkingMap from '../components/ParkingMap';
 import ParkingLocationCard from '../components/ParkingLocationCard';
 import BookNow from '../components/BookNow';
 import SearchForm from '../components/SearchForm';
+import SearchFilter from '../components/SearchFilter';
 import axios from 'axios';
 
 // Function to fetch real parking spots from admins
@@ -73,6 +74,7 @@ const Dashboard = () => {
   const { state } = useLocation();
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [parkingSpots, setParkingSpots] = useState([]);
+  const [filteredParkingSpots, setFilteredParkingSpots] = useState([]);
   const [showBookNow, setShowBookNow] = useState(false);
   const [bookingLocation, setBookingLocation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,6 +96,7 @@ const Dashboard = () => {
       if (state?.location) {
         const spots = await fetchParkingSpots(state.location);
         setParkingSpots(spots);
+        setFilteredParkingSpots(spots);
         if (spots.length > 0) {
           setSelectedLocation(spots[0]);
         }
@@ -103,6 +106,75 @@ const Dashboard = () => {
 
     loadParkingSpots();
   }, [state?.location, state?.startDateTime, state?.endDateTime]);
+
+  const handleFilterChange = (filters) => {
+    let filtered = [...parkingSpots];
+
+    // Apply search filter
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      filtered = filtered.filter(location =>
+        location.name.toLowerCase().includes(searchTerm) ||
+        location.address.toLowerCase().includes(searchTerm) ||
+        location.city.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    // Apply price range filter
+    if (filters.priceRange.min) {
+      filtered = filtered.filter(location => {
+        const price = parseFloat(location.spotRate);
+        return price >= parseFloat(filters.priceRange.min);
+      });
+    }
+    if (filters.priceRange.max) {
+      filtered = filtered.filter(location => {
+        const price = parseFloat(location.spotRate);
+        return price <= parseFloat(filters.priceRange.max);
+      });
+    }
+
+    // Apply vehicle type filter
+    if (filters.vehicleType !== 'all') {
+      filtered = filtered.filter(location => {
+        if (filters.vehicleType === 'two-wheeler') {
+          return parseInt(location.twoWheelerSpaces) > 0;
+        } else {
+          return parseInt(location.fourWheelerSpaces) > 0;
+        }
+      });
+    }
+
+    // Apply security features filter
+    if (filters.securityFeatures.length > 0) {
+      filtered = filtered.filter(location =>
+        filters.securityFeatures.every(feature =>
+          location.facilities?.some(facility =>
+            facility.toLowerCase().includes(feature.toLowerCase())
+          )
+        )
+      );
+    }
+
+    // Apply access hours filter
+    if (filters.accessHours !== 'all') {
+      filtered = filtered.filter(location => {
+        switch (filters.accessHours) {
+          case '24/7':
+            return location.facilities?.includes('24/7 Security');
+          case 'day':
+            return !location.facilities?.includes('24/7 Security') && 
+                   location.facilities?.some(facility => facility.toLowerCase().includes('day'));
+          case 'custom':
+            return !location.facilities?.includes('24/7 Security');
+          default:
+            return true;
+        }
+      });
+    }
+
+    setFilteredParkingSpots(filtered);
+  };
 
   const handleLocationSelect = (location) => {
     setSelectedLocation(location);
@@ -127,6 +199,7 @@ const Dashboard = () => {
     
     const spots = await fetchParkingSpots(formData.location);
     setParkingSpots(spots);
+    setFilteredParkingSpots(spots);
     if (spots.length > 0) {
       setSelectedLocation(spots[0]);
     }
@@ -154,7 +227,8 @@ const Dashboard = () => {
         <div className="w-2/5 h-[calc(100vh-4rem)] overflow-y-auto z-10">
           <div className="p-4">
             <h2 className="text-2xl font-bold mb-4">Available Parking Spots</h2>
-            {parkingSpots.map((spot, index) => (
+            <SearchFilter onFilterChange={handleFilterChange} />
+            {filteredParkingSpots.map((spot, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
