@@ -124,6 +124,40 @@ const ParkingDetails = ({ formData, handleChange }) => {
       </div>
 
       <div className="space-y-2">
+        <label htmlFor="twoWheelerHourlyRate" className="block text-sm font-medium text-gray-700">
+          Two-Wheeler Hourly Rate (₹)
+        </label>
+        <input
+          type="number"
+          id="twoWheelerHourlyRate"
+          name="twoWheelerHourlyRate"
+          value={formData.twoWheelerHourlyRate || ''}
+          onChange={handleChange}
+          min="0"
+          step="0.01"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="fourWheelerHourlyRate" className="block text-sm font-medium text-gray-700">
+          Four-Wheeler Hourly Rate (₹)
+        </label>
+        <input
+          type="number"
+          id="fourWheelerHourlyRate"
+          name="fourWheelerHourlyRate"
+          value={formData.fourWheelerHourlyRate || ''}
+          onChange={handleChange}
+          min="0"
+          step="0.01"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
         <label htmlFor="hourlyRate" className="block text-sm font-medium text-gray-700">
           Hourly Rate (₹)
         </label>

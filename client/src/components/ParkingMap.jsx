@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 
 // Set default icon
 const DefaultIcon = L.icon({
@@ -21,7 +23,169 @@ const ParkingMap = ({ locations, selectedLocation, onLocationSelect }) => {
   const mapInstanceRef = useRef(null);
   const markersRef = useRef({});
   const selectedMarkerRef = useRef(null);
+  const popupRef = useRef(null);
   const isInitialZoomRef = useRef(true);
+  const { user } = useAuth();
+  const [availableSpaces, setAvailableSpaces] = useState({
+    twoWheeler: 0,
+    fourWheeler: 0
+  });
+
+  // Effect to update popup content when availableSpaces changes
+  useEffect(() => {
+    if (popupRef.current && selectedMarkerRef.current) {
+      const marker = selectedMarkerRef.current;
+      const popup = marker.getPopup();
+      if (popup) {
+        popup.setContent(createPopupContent(selectedLocation));
+        if (popup.isOpen()) {
+          popup.update();
+        }
+      }
+    }
+  }, [availableSpaces, selectedLocation]);
+
+  const createPopupContent = (location) => {
+    const popupContent = document.createElement('div');
+    popupContent.className = 'custom-popup';
+    popupContent.innerHTML = `
+      <div class="p-3 min-w-[250px]">
+        <h3 class="text-lg font-bold mb-2">${location.name}</h3>
+        <div class="space-y-2">
+          <div class="flex items-center text-gray-600">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="text-sm">${location.accessHours || '24/7'}</span>
+          </div>
+          <div class="text-green-600 font-medium flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            </svg>
+            ${location.price}
+          </div>
+          <div class="text-sm text-gray-600 mb-2">
+            <div class="flex items-center justify-between border-b pb-1 mb-1">
+              <span>Two Wheeler Spots:</span>
+              <span class="font-semibold text-green-600">${availableSpaces.twoWheeler} available</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Four Wheeler Spots:</span>
+              <span class="font-semibold text-green-600">${availableSpaces.fourWheeler} available</span>
+            </div>
+          </div>
+          <div class="text-sm text-gray-600 border-t pt-2">
+            <div class="font-medium mb-1">Security & Facilities:</div>
+            ${location.securityMeasures?.map(measure => `
+              <div class="flex items-center gap-1 mb-1">
+                <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span>${measure}</span>
+              </div>
+            `).join('') || ''}
+          </div>
+          <div class="text-xs text-gray-500 mt-2">
+            <div class="flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>For emergencies: ${location.emergencyContact || 'Contact admin'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    return popupContent;
+  };
+
+  // Add function to fetch available spaces
+  const fetchAvailableSpaces = async (location) => {
+    try {
+      console.log('Location data:', location);
+      
+      // Get admin ID from location
+      const adminId = location.adminId;
+      if (!adminId) {
+        console.error('No admin ID found for location:', location);
+        return;
+      }
+
+      // First get admin details
+      const adminResponse = await api.get(`/admin/${adminId}`);
+      const adminData = adminResponse.data;
+      console.log('Admin data:', adminData);
+
+      if (!adminData?.email) {
+        console.error('No admin email found');
+        return;
+      }
+
+      // Get admin stats
+      console.log('Fetching stats for admin email:', adminData.email);
+      const statsResponse = await api.get(`/admin/stats/${encodeURIComponent(adminData.email)}`);
+      const statsData = statsResponse.data;
+      console.log('Stats data:', statsData);
+
+      // Get bookings to calculate active/completed counts
+      const bookingsResponse = await api.get(`/admin/bookings/${adminId}`);
+      const bookings = bookingsResponse.data;
+
+      // Process bookings to calculate status
+      const now = new Date();
+      const processedBookings = bookings.map(booking => {
+        const endDateTime = new Date(booking.endDateTime);
+        return {
+          ...booking,
+          status: endDateTime > now ? 'Active' : 'Completed'
+        };
+      });
+
+      // Filter active bookings
+      const activeBookings = processedBookings.filter(b => b.status === 'Active');
+
+      // Count active bookings by vehicle type
+      const activeTwoWheelers = activeBookings.filter(b => 
+        (b.vehicle?.category || b.vehicleDetails?.category) === 'two-wheeler'
+      ).length;
+      
+      const activeFourWheelers = activeBookings.filter(b => 
+        (b.vehicle?.category || b.vehicleDetails?.category) === 'four-wheeler'
+      ).length;
+
+      console.log('Active bookings count:', { 
+        twoWheelers: activeTwoWheelers, 
+        fourWheelers: activeFourWheelers 
+      });
+
+      // Calculate total spaces from admin data
+      const totalTwoWheelerSpaces = parseInt(statsData.totalSpaces?.twoWheeler) || parseInt(location.twoWheelerSpaces) || 0;
+      const totalFourWheelerSpaces = parseInt(statsData.totalSpaces?.fourWheeler) || parseInt(location.fourWheelerSpaces) || 0;
+      
+      console.log('Total spaces:', {
+        twoWheelers: totalTwoWheelerSpaces,
+        fourWheelers: totalFourWheelerSpaces
+      });
+
+      // Calculate available spaces by subtracting active bookings
+      const availableTwoWheelerSpaces = Math.max(0, totalTwoWheelerSpaces - activeTwoWheelers);
+      const availableFourWheelerSpaces = Math.max(0, totalFourWheelerSpaces - activeFourWheelers);
+
+      console.log('Calculated available spaces:', {
+        twoWheelers: availableTwoWheelerSpaces,
+        fourWheelers: availableFourWheelerSpaces
+      });
+
+      setAvailableSpaces({
+        twoWheeler: availableTwoWheelerSpaces,
+        fourWheeler: availableFourWheelerSpaces
+      });
+
+    } catch (error) {
+      console.error('Error fetching available spaces:', error);
+      console.error('Error details:', error.response?.data || error.message);
+    }
+  };
 
   useEffect(() => {
     // Cleanup function to handle map instance cleanup
@@ -50,7 +214,7 @@ const ParkingMap = ({ locations, selectedLocation, onLocationSelect }) => {
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19, // Increased max zoom
         minZoom: 3,  // Decreased min zoom
-        attribution: '© OpenStreetMap contributors'
+        attribution: ' OpenStreetMap contributors'
       }).addTo(mapInstanceRef.current);
     }
 
@@ -95,6 +259,21 @@ const ParkingMap = ({ locations, selectedLocation, onLocationSelect }) => {
           zIndexOffset: isSelected ? 1000 : 0
         }).addTo(mapInstanceRef.current);
 
+        const popup = L.popup({
+          closeButton: true,
+          closeOnClick: false,
+          className: `custom-popup ${isSelected ? 'selected-popup' : ''}`,
+          maxWidth: 250,
+          minWidth: 200,
+          openAnimation: true,
+          closeAnimation: true,
+          offset: [0, -5]
+        });
+
+        // Set initial popup content
+        popup.setContent(createPopupContent(location));
+        marker.bindPopup(popup);
+        
         // Store reference to selected marker
         if (isSelected) {
           selectedMarkerRef.current = marker;
@@ -102,42 +281,15 @@ const ParkingMap = ({ locations, selectedLocation, onLocationSelect }) => {
           if (marker._icon) {
             marker._icon.classList.add('selected-marker');
           }
+          // Fetch available spaces for selected location
+          fetchAvailableSpaces(location);
         }
 
-        const popupContent = document.createElement('div');
-        popupContent.className = 'custom-popup';
-        popupContent.innerHTML = `
-          <div class="p-3 min-w-[200px]">
-            <h3 class="text-lg font-bold mb-2">${location.name}</h3>
-            <div class="space-y-2">
-              <p class="text-green-600 font-medium">${location.price}</p>
-              <div class="text-sm text-gray-600">
-                ${location.facilities.map(f => `
-                  <div class="flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>${f}</span>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-          </div>
-        `;
+        // Store popup reference if this is the selected marker
+        if (isSelected) {
+          popupRef.current = popup;
+        }
 
-        const popup = L.popup({
-          closeButton: true,
-          closeOnClick: false,
-          className: `custom-popup ${isSelected ? 'selected-popup' : ''}`,
-          maxWidth: 250,  // Reduced from 300
-          minWidth: 200,  // Reduced from 250
-          openAnimation: true,
-          closeAnimation: true,
-          offset: [0, -5]
-        }).setContent(popupContent);
-
-        marker.bindPopup(popup);
-        
         marker.on('click', () => {
           // Remove highlight from previously selected marker
           Object.values(markersRef.current).forEach(m => {
@@ -151,7 +303,12 @@ const ParkingMap = ({ locations, selectedLocation, onLocationSelect }) => {
             marker._icon.classList.add('selected-marker');
           }
           
+          // Update selected marker and popup references
+          selectedMarkerRef.current = marker;
+          popupRef.current = marker.getPopup();
+          
           onLocationSelect(location);
+          fetchAvailableSpaces(location);
         });
 
         markersRef.current[location.name] = marker;
@@ -172,7 +329,7 @@ const ParkingMap = ({ locations, selectedLocation, onLocationSelect }) => {
             easeLinearity: 0.5
           }
         );
-        
+
         // Open popup after pan completes
         setTimeout(() => {
           marker.openPopup();
@@ -214,13 +371,13 @@ const ParkingMap = ({ locations, selectedLocation, onLocationSelect }) => {
       animation: bounce 0.5s ease-out;
       z-index: 1000 !important;
     }
-    
+
     @keyframes bounce {
       0% { transform: translateY(0); }
       50% { transform: translateY(-10px); }
       100% { transform: translateY(0); }
     }
-    
+
     .selected-popup .leaflet-popup-content-wrapper {
       border: 2px solid #3b82f6;
       box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);

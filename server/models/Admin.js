@@ -83,6 +83,16 @@ const adminSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  twoWheelerHourlyRate: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  fourWheelerHourlyRate: {
+    type: Number,
+    required: true,
+    min: 0
+  },
   totalSpaces: {
     type: Number,
     required: true,

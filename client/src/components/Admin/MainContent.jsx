@@ -116,6 +116,7 @@ const MainContent = () => {
   useEffect(() => {
     // Update parking rate when user data changes
     setStats(prevStats => ({
+
       ...prevStats,
       parkingRate: parseInt(user?.hourlyRate) || 0
     }));
@@ -190,10 +191,13 @@ const MainContent = () => {
           details={[{ label: 'Total completed', value: stats.completedBookings.toString() }]}
         />
         <StatCard 
-          title="Parking Rate" 
-          value={`₹${adminData?.hourlyRate || 0}/hr`}
+          title="Parking Rates" 
+          value={`2W: ₹${adminData?.twoWheelerHourlyRate || 0}/hr`}
           icon={<Tag className="w-8 h-8 text-pink-500" />}
-          details={[{ label: "Current rate", value: `₹${adminData?.hourlyRate || 0}/hr` }]}
+          details={[
+            { label: "Two Wheeler Rate", value: `₹${adminData?.twoWheelerHourlyRate || 0}/hr` },
+            { label: "Four Wheeler Rate", value: `₹${adminData?.fourWheelerHourlyRate || 0}/hr` }
+          ]}
         />
       </motion.div>
 
